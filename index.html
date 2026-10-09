@@ -1,0 +1,1215 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#071019">
+  <meta name="description" content="国庆节后第一天生存模拟器：选择上班或上学，完成 8 个剧情节点，领取你的人类返岗体检报告。">
+  <meta name="format-detection" content="telephone=no">
+  <title>节后第一天生存模拟器</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='8' fill='%23071019'/%3E%3Cpath d='M12 15h40v34H12z' fill='%23f6f1df'/%3E%3Cpath d='M18 23h28M18 31h18M18 39h24' stroke='%23071019' stroke-width='4'/%3E%3Ccircle cx='47' cy='42' r='8' fill='%23eaff3d'/%3E%3C/svg%3E">
+  <style>:root {
+  color-scheme: dark;
+  --ink: #071019;
+  --panel: #0d1a26;
+  --paper: #f6f1df;
+  --sulfur: #eaff3d;
+  --orange: #ff654d;
+  --mint: #58f2c2;
+  --blue: #76a9ff;
+  --muted: #9eabba;
+  --line: #273849;
+  --black: #03070b;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  font-family: "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", system-ui, sans-serif;
+  font-synthesis: none;
+}
+
+* { box-sizing: border-box; }
+html {
+  min-height: 100%;
+  overflow-x: hidden;
+  background: var(--ink);
+  -webkit-text-size-adjust: 100%;
+}
+body {
+  min-width: 320px;
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0;
+  overflow-x: hidden;
+  color: var(--paper);
+  background: radial-gradient(circle at 15% 2%, rgba(118,169,255,.12), transparent 30rem), var(--ink);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-tap-highlight-color: transparent;
+}
+button, a { font: inherit; }
+button { border: 0; cursor: pointer; }
+button:focus-visible, a:focus-visible { outline: 3px solid var(--blue); outline-offset: 4px; }
+button:disabled { cursor: wait; opacity: .58; }
+[hidden] { display: none !important; }
+
+.app-shell {
+  position: relative;
+  isolation: isolate;
+  width: min(100%, 460px);
+  min-height: 100vh;
+  min-height: 100svh;
+  margin: 0 auto;
+  padding: calc(var(--safe-top) + 12px) max(16px, var(--safe-right)) calc(var(--safe-bottom) + 20px) max(16px, var(--safe-left));
+}
+.ambient-grid {
+  position: fixed;
+  z-index: -1;
+  inset: 0;
+  pointer-events: none;
+  opacity: .35;
+  background-image: linear-gradient(rgba(118,169,255,.045) 1px, transparent 1px), linear-gradient(90deg, rgba(118,169,255,.045) 1px, transparent 1px);
+  background-size: 24px 24px;
+  mask-image: linear-gradient(to bottom, black, transparent 72%);
+}
+.app-header, .app-footer { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.app-header { min-height: 54px; margin-bottom: 22px; border-bottom: 1px solid var(--line); }
+.brand { display: inline-flex; align-items: center; gap: 9px; min-height: 48px; color: inherit; text-decoration: none; }
+.brand-mark {
+  display: grid; place-items: center; width: 34px; height: 34px;
+  color: var(--ink); background: var(--sulfur); box-shadow: 4px 4px 0 var(--line);
+  font-size: 13px; font-weight: 950; transform: rotate(-2deg);
+}
+.brand strong, .brand small { display: block; }
+.brand strong { font-size: 13px; line-height: 1.2; }
+.brand small { margin-top: 3px; color: var(--muted); font: 8px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }
+.system-status { display: inline-flex; align-items: center; gap: 6px; color: var(--muted); font-size: 11px; white-space: nowrap; }
+.system-status i { width: 7px; height: 7px; background: var(--mint); box-shadow: 0 0 0 3px rgba(88,242,194,.12); animation: status-blink 2.4s steps(1) infinite; }
+.screen { animation: screen-in 360ms cubic-bezier(.2,.8,.2,1) both; }
+
+.ticket { position: relative; color: var(--ink); background: var(--paper); box-shadow: 8px 8px 0 var(--black), 9px 9px 0 var(--line); }
+.ticket::before, .ticket::after, .result-slip::before, .result-slip::after {
+  position: absolute; width: 20px; height: 20px; border-radius: 50%; background: var(--ink); content: "";
+}
+.ticket::before, .ticket::after { top: 35.7%; }
+.ticket::before, .result-slip::before { left: -10px; }
+.ticket::after, .result-slip::after { right: -10px; }
+.ticket-topline, .result-slip__header, .result-slip__footer {
+  display: flex; justify-content: space-between; gap: 12px; padding: 11px 14px;
+  color: var(--paper); background: var(--panel);
+  font: 700 10px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em;
+}
+.hero-copy { padding: 28px 22px 20px; }
+.kicker {
+  width: fit-content; margin: 0 0 13px; padding: 4px 8px;
+  color: var(--ink); background: var(--sulfur); font-size: 12px; font-weight: 900;
+  letter-spacing: .04em; transform: rotate(-1deg);
+}
+.hero-copy h1 { margin: 0; font-size: clamp(40px, 12vw, 54px); font-weight: 950; line-height: .97; letter-spacing: -.075em; }
+.hero-copy h1 span { display: inline-block; margin-top: 9px; color: var(--orange); }
+.hero-lead { margin: 22px 0 0; color: #344250; font-size: 16px; line-height: 1.75; }
+.boot-check { display: grid; grid-template-columns: repeat(3,1fr); margin: 0 22px; border: 2px solid var(--ink); box-shadow: 4px 4px 0 rgba(7,16,25,.17); }
+.boot-check div { min-width: 0; padding: 10px 8px; text-align: center; }
+.boot-check div + div { border-left: 1px dashed var(--ink); }
+.boot-check span, .boot-check strong { display: block; }
+.boot-check span { color: #58626b; font-size: 10px; }
+.boot-check strong { margin-top: 2px; font-size: 14px; font-weight: 950; }
+.mode-picker { margin-top: 26px; padding: 24px 22px 28px; border-top: 2px dashed var(--ink); }
+.section-heading { display: flex; align-items: center; gap: 11px; margin-bottom: 15px; }
+.step-no { display: grid; place-items: center; flex: 0 0 auto; width: 34px; height: 34px; border: 2px solid currentColor; font: 900 15px/1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.section-heading p, .section-heading h2 { margin: 0; }
+.section-heading p { font: 700 9px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .12em; }
+.section-heading h2 { margin-top: 3px; font-size: 16px; line-height: 1.2; }
+.mode-grid { display: grid; gap: 12px; }
+.mode-button {
+  display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 13px;
+  width: 100%; min-height: 74px; padding: 12px 14px; color: var(--paper); text-align: left;
+  background: var(--panel); border: 2px solid var(--ink); box-shadow: 4px 4px 0 rgba(7,16,25,.28);
+  transition: transform 140ms ease, box-shadow 140ms ease, color 140ms ease, background 140ms ease;
+}
+.mode-button:hover, .mode-button:active { color: var(--ink); background: var(--sulfur); box-shadow: 1px 1px 0 rgba(7,16,25,.28); transform: translate(3px,3px); }
+.mode-button--school:hover, .mode-button--school:active { background: var(--mint); }
+.mode-icon { display: grid; place-items: center; width: 40px; height: 40px; color: var(--ink); background: var(--orange); font-size: 18px; font-weight: 950; }
+.mode-button--school .mode-icon { background: var(--blue); }
+.mode-copy strong, .mode-copy small { display: block; }
+.mode-copy strong { font-size: 17px; }
+.mode-copy small { margin-top: 2px; color: var(--muted); font-size: 12px; }
+.mode-button:hover .mode-copy small, .mode-button:active .mode-copy small { color: #35414a; }
+.button-arrow { font-size: 24px; line-height: 1; }
+.ticket-stub { display: flex; justify-content: space-between; gap: 10px; padding: 10px 14px; color: var(--paper); background: var(--panel); font: 700 9px/1.25 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .05em; }
+.start-footnote { margin: 22px auto 0; color: var(--muted); font-size: 12px; text-align: center; }
+
+.game-toolbar { display: grid; grid-template-columns: 84px 1fr; gap: 14px; margin-bottom: 15px; }
+.time-display { display: flex; flex-direction: column; justify-content: center; min-height: 68px; padding: 8px 10px; color: var(--ink); background: var(--sulfur); box-shadow: 4px 4px 0 var(--black); }
+.time-display span { font-size: 9px; font-weight: 900; letter-spacing: .08em; }
+.time-display strong { font: 950 20px/1.1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.progress-wrap { padding-top: 3px; }
+.progress-label { display: flex; justify-content: space-between; color: var(--muted); font-size: 11px; }
+.progress-label b { color: var(--paper); }
+.progress-track { height: 8px; margin-top: 8px; overflow: hidden; background: var(--line); }
+.progress-bar { height: 100%; background: var(--orange); transition: width 320ms ease; }
+.punch-track { display: flex; justify-content: space-between; margin-top: 8px; }
+.punch-track i { width: 8px; height: 8px; border: 1px solid #526272; border-radius: 50%; background: var(--ink); }
+.punch-track i.is-active { border-color: var(--orange); background: var(--orange); }
+.status-panel { margin-bottom: 16px; border: 1px solid var(--line); background: rgba(13,26,38,.84); }
+.status-panel__heading { display: flex; align-items: baseline; justify-content: space-between; padding: 8px 11px; border-bottom: 1px solid var(--line); }
+.status-panel__heading span { color: var(--muted); font: 700 9px/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .1em; }
+.status-panel__heading strong { font-size: 12px; }
+.stat-grid { display: grid; grid-template-columns: repeat(3,1fr); }
+.stat { min-width: 0; padding: 10px; }
+.stat + .stat { border-left: 1px solid var(--line); }
+.stat-label { display: flex; align-items: baseline; justify-content: space-between; gap: 4px; }
+.stat-label span { overflow: hidden; color: var(--muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.stat-label b { font: 900 15px/1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.stat-meter { height: 4px; margin-top: 7px; background: var(--line); }
+.stat-meter i { display: block; width: 50%; height: 100%; background: var(--mint); transition: width 280ms ease; }
+.stat--dignity .stat-meter i { background: var(--blue); }
+.stat--luck .stat-meter i { background: var(--sulfur); }
+.scene-ticket { position: relative; display: grid; grid-template-columns: 58px 1fr; min-height: 238px; overflow: hidden; color: var(--ink); background: var(--paper); box-shadow: 7px 7px 0 var(--black); }
+.scene-ticket::before, .scene-ticket::after { position: absolute; top: 20px; width: 14px; height: 14px; border-radius: 50%; background: var(--ink); content: ""; }
+.scene-ticket::before { left: -7px; }
+.scene-ticket::after { right: -7px; }
+.scene-index { display: flex; flex-direction: column; align-items: center; justify-content: center; border-right: 2px dashed var(--ink); writing-mode: vertical-rl; transform: rotate(180deg); }
+.scene-index span { font: 700 9px/1 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .14em; }
+.scene-index strong { margin-top: 8px; font: 950 24px/1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.scene-copy { align-self: center; padding: 32px 25px 38px 22px; }
+.scene-eyebrow { width: fit-content; margin: 0 0 13px; padding: 4px 7px; color: var(--paper); background: var(--orange); font-size: 11px; font-weight: 900; transform: rotate(-1deg); }
+.scene-copy h2 { margin: 0; font-size: 27px; font-weight: 950; line-height: 1.18; letter-spacing: -.045em; }
+.scene-body { margin: 16px 0 0; color: #42515d; font-size: 16px; line-height: 1.72; }
+.scene-barcode { position: absolute; right: 18px; bottom: 13px; width: 78px; height: 14px; opacity: .55; background: repeating-linear-gradient(90deg,var(--ink) 0 2px,transparent 2px 4px,var(--ink) 4px 5px,transparent 5px 8px); }
+.decision-panel { margin-top: 22px; }
+.section-heading--compact { color: var(--paper); }
+.section-heading--compact .step-no { color: var(--ink); background: var(--sulfur); border-color: var(--sulfur); }
+.section-heading--compact p { color: var(--muted); }
+.option-list { display: grid; gap: 11px; counter-reset: option; }
+.option-button, #option-list > button {
+  position: relative; display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 10px;
+  width: 100%; min-height: 64px; padding: 12px 14px; color: var(--paper); text-align: left;
+  background: var(--panel); border: 1px solid #395067; box-shadow: 4px 4px 0 var(--black);
+  counter-increment: option; transition: transform 140ms ease, border-color 140ms ease, background 140ms ease;
+}
+.option-button::before, #option-list > button::before { display: grid; place-items: center; width: 28px; height: 28px; color: var(--ink); background: var(--blue); font: 900 12px/1 ui-monospace, SFMono-Regular, Consolas, monospace; content: counter(option, upper-alpha); }
+.option-button::after, #option-list > button::after { color: var(--sulfur); font-size: 20px; content: "→"; }
+.option-button:hover, .option-button:active, #option-list > button:hover, #option-list > button:active { color: var(--ink); background: var(--sulfur); border-color: var(--sulfur); transform: translate(2px,2px); }
+.option-button:hover::after, .option-button:active::after, #option-list > button:hover::after, #option-list > button:active::after { color: var(--ink); }
+.feedback { position: fixed; z-index: 20; right: max(18px,var(--safe-right)); bottom: max(22px,calc(var(--safe-bottom) + 12px)); left: max(18px,var(--safe-left)); width: min(calc(100% - 36px),424px); min-height: 56px; margin: 0 auto; padding: 14px 16px; color: var(--ink); background: var(--sulfur); border: 2px solid var(--ink); box-shadow: 6px 6px 0 var(--orange); font-size: 14px; font-weight: 800; animation: feedback-in 220ms ease-out both; }
+
+.result-slip { position: relative; color: var(--ink); background: var(--paper); box-shadow: 8px 8px 0 var(--black), 9px 9px 0 var(--line); }
+.result-slip::before, .result-slip::after { top: 345px; }
+.result-hero { position: relative; padding: 31px 23px 27px; overflow: hidden; border-bottom: 2px dashed var(--ink); }
+.result-hero > p:first-of-type { margin: 0 0 7px; font-size: 12px; font-weight: 900; letter-spacing: .14em; }
+.result-hero h1 { position: relative; z-index: 1; max-width: 86%; margin: 0; color: var(--orange); font-size: clamp(35px,10vw,46px); font-weight: 950; line-height: 1.05; letter-spacing: -.055em; }
+.result-verdict { position: relative; z-index: 1; margin: 16px 0 0; color: #344250; font-size: 16px; line-height: 1.7; }
+.result-stamp { position: absolute; top: 34px; right: -10px; display: grid; place-items: center; width: 92px; height: 92px; color: var(--orange); border: 6px double var(--orange); border-radius: 50%; font-size: 21px; font-weight: 950; opacity: .22; transform: rotate(13deg); }
+.score-block { display: grid; grid-template-columns: 1fr auto auto; align-items: end; padding: 22px 23px 16px; }
+.score-block span { align-self: center; font-size: 13px; font-weight: 900; }
+.score-block strong { font: 950 56px/.8 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: -.08em; }
+.score-block small { margin-left: 4px; color: #596771; font-size: 12px; }
+.result-stats { display: grid; grid-template-columns: repeat(3,1fr); margin: 7px 23px 23px; border: 2px solid var(--ink); }
+.result-stats div { padding: 10px 7px; text-align: center; }
+.result-stats div + div { border-left: 1px dashed var(--ink); }
+.result-stats span, .result-stats strong { display: block; }
+.result-stats span { font-size: 10px; }
+.result-stats strong { margin-top: 2px; font: 950 20px/1.1 ui-monospace, SFMono-Regular, Consolas, monospace; }
+.result-section { margin: 0 23px; padding: 18px 0; border-top: 1px solid rgba(7,16,25,.25); }
+.result-label { margin: 0 0 9px; font: 900 11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }
+.tag-list { display: flex; flex-wrap: wrap; gap: 7px; min-height: 30px; }
+.result-tag, #result-tags > * { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 9px; color: var(--ink); background: var(--sulfur); border: 1px solid var(--ink); font-size: 14px; font-weight: 800; transform: rotate(-1deg); }
+.result-tag:nth-child(even), #result-tags > *:nth-child(even) { background: var(--mint); transform: rotate(1deg); }
+.result-section--highlight, .result-section--share { margin-right: 0; margin-left: 0; padding-right: 23px; padding-left: 23px; }
+.result-section--highlight { background: rgba(118,169,255,.24); }
+.result-section--share { color: var(--paper); background: var(--panel); }
+.result-section--highlight p:last-child, .result-section--share p:last-child { margin: 0; font-size: 16px; line-height: 1.7; }
+.result-actions { display: grid; gap: 11px; padding: 23px; }
+.primary-button, .secondary-button, .text-button { width: 100%; font-weight: 900; }
+.primary-button { display: flex; align-items: center; justify-content: space-between; min-height: 60px; padding: 13px 17px; color: var(--ink); background: var(--sulfur); border: 2px solid var(--ink); box-shadow: 4px 4px 0 var(--orange); }
+.secondary-button { min-height: 52px; padding: 10px 15px; color: var(--paper); background: var(--panel); border: 2px solid var(--ink); }
+.text-button { min-height: 48px; padding: 8px 12px; color: #435360; background: transparent; text-decoration: underline; text-underline-offset: 4px; }
+.primary-button:active, .secondary-button:active { transform: translate(2px,2px); }
+.result-slip__footer { font-size: 8px; }
+.app-footer { margin-top: 30px; padding-top: 12px; color: #617181; border-top: 1px solid var(--line); font-size: 9px; letter-spacing: .05em; }
+
+.report-modal { position: fixed; z-index: 100; inset: 0; display: grid; align-items: end; padding-top: var(--safe-top); }
+.modal-backdrop { position: absolute; inset: 0; width: 100%; height: 100%; background: rgba(3,7,11,.86); backdrop-filter: blur(5px); }
+.modal-sheet { position: relative; z-index: 1; width: min(100%,460px); max-height: calc(100svh - var(--safe-top)); margin: 0 auto; padding: 18px max(16px,var(--safe-right)) calc(var(--safe-bottom) + 18px) max(16px,var(--safe-left)); overflow-y: auto; background: var(--panel); border-top: 4px solid var(--sulfur); box-shadow: 0 -14px 0 rgba(7,16,25,.62); animation: sheet-in 280ms cubic-bezier(.2,.8,.2,1) both; }
+.modal-header { display: flex; align-items: center; justify-content: space-between; gap: 15px; margin-bottom: 15px; }
+.modal-header p, .modal-header h2 { margin: 0; }
+.modal-header p { color: var(--mint); font: 700 9px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .12em; }
+.modal-header h2 { margin-top: 3px; font-size: 20px; }
+.modal-close { flex: 0 0 auto; width: 48px; height: 48px; color: var(--paper); background: transparent; border: 1px solid var(--line); font-size: 28px; line-height: 1; }
+.report-frame { min-height: 280px; padding: 8px; background: linear-gradient(45deg,#152433 25%,transparent 25%),linear-gradient(-45deg,#152433 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#152433 75%),linear-gradient(-45deg,transparent 75%,#152433 75%); background-position: 0 0,0 8px,8px -8px,-8px 0; background-size: 16px 16px; border: 1px solid var(--line); }
+.report-frame img { display: block; width: 100%; min-height: 260px; object-fit: contain; background: var(--paper); }
+.save-hint { margin: 12px 0 0; color: var(--muted); font-size: 13px; text-align: center; }
+.noscript-message { position: fixed; z-index: 200; inset: 0; display: grid; place-items: center; padding: 30px; color: var(--ink); background: var(--sulfur); font-size: 18px; font-weight: 900; text-align: center; }
+
+@keyframes screen-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes feedback-in { from { opacity: 0; transform: translateY(14px) rotate(1deg); } to { opacity: 1; transform: translateY(0) rotate(-1deg); } }
+@keyframes sheet-in { from { transform: translateY(100%); } to { transform: translateY(0); } }
+@keyframes status-blink { 0%,72% { opacity: 1; } 73%,79% { opacity: .2; } 80%,100% { opacity: 1; } }
+
+@media (min-width: 700px) {
+  body { padding: 22px 0; }
+  .app-shell { min-height: calc(100vh - 44px); border: 1px solid var(--line); box-shadow: 18px 18px 0 rgba(3,7,11,.75); }
+  .modal-sheet { margin-bottom: 22px; border: 1px solid var(--line); border-top: 4px solid var(--sulfur); }
+}
+@media (max-width: 359px) {
+  .app-shell { padding-right: 12px; padding-left: 12px; }
+  .hero-copy, .mode-picker { padding-right: 17px; padding-left: 17px; }
+  .hero-copy h1 { font-size: 38px; }
+  .system-status { display: none; }
+  .scene-copy h2 { font-size: 24px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+}</style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="ambient-grid" aria-hidden="true"></div>
+    <header class="app-header">
+      <a class="brand" href="#start-screen" aria-label="返回模拟器首页">
+        <span class="brand-mark" aria-hidden="true">节后</span>
+        <span><strong>人类状态检修中心</strong><small>HOLIDAY RECOVERY UNIT</small></span>
+      </a>
+      <span class="system-status"><i aria-hidden="true"></i>系统勉强在线</span>
+    </header>
+
+    <main>
+      <section id="start-screen" class="screen start-screen" aria-labelledby="start-title">
+        <div class="ticket ticket--hero">
+          <div class="ticket-topline"><span>临时工单</span><span>NO. 1008</span></div>
+          <div class="hero-copy">
+            <p class="kicker">国庆假期结束 · 人类强制开机</p>
+            <h1 id="start-title">节后第一天<br><span>生存模拟器</span></h1>
+            <p class="hero-lead">系统检测到你已离开快乐区。请领取身份，在 8 次精神冲击中努力保持人形。</p>
+          </div>
+          <div class="boot-check" aria-label="开机自检状态">
+            <div><span>灵魂归位</span><strong>12%</strong></div>
+            <div><span>社交能力</span><strong>可疑</strong></div>
+            <div><span>假期余额</span><strong>0 天</strong></div>
+          </div>
+          <div class="mode-picker" aria-labelledby="mode-heading">
+            <div class="section-heading">
+              <span class="step-no">01</span>
+              <div><p>SELECT IDENTITY</p><h2 id="mode-heading">请选择今日受难身份</h2></div>
+            </div>
+            <div class="mode-grid">
+              <button id="mode-work" class="mode-button mode-button--work" type="button">
+                <span class="mode-icon" aria-hidden="true">工</span>
+                <span class="mode-copy"><strong>上班模式</strong><small>会议、甲方与工位复健</small></span>
+                <span class="button-arrow" aria-hidden="true">→</span>
+              </button>
+              <button id="mode-school" class="mode-button mode-button--school" type="button">
+                <span class="mode-icon" aria-hidden="true">学</span>
+                <span class="mode-copy"><strong>上学模式</strong><small>早八、点名与 ddl 突袭</small></span>
+                <span class="button-arrow" aria-hidden="true">→</span>
+              </button>
+            </div>
+          </div>
+          <div class="ticket-stub" aria-hidden="true"><span>预计耗时 2–3 分钟</span><span>无需登录 · 不收集信息</span></div>
+        </div>
+        <p class="start-footnote">请放心作答，本中心只负责诊断，不负责治愈。</p>
+      </section>
+
+      <section id="game-screen" class="screen game-screen" aria-labelledby="scene-title" hidden>
+        <div class="game-toolbar">
+          <div class="time-display"><span>当前节点</span><strong id="current-time">07:30</strong></div>
+          <div class="progress-wrap">
+            <div class="progress-label"><span>返岗流程</span><span><b class="progress-current">1</b> / 8</span></div>
+            <div class="progress-track" aria-label="游戏进度"><div id="progress-bar" class="progress-bar" style="width:12.5%"></div></div>
+            <div class="punch-track" aria-hidden="true"><i class="is-active"></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div>
+          </div>
+        </div>
+        <div class="status-panel" aria-label="生存状态自检">
+          <div class="status-panel__heading"><span>DEVICE SELF-CHECK</span><strong>人体运行参数</strong></div>
+          <div class="stat-grid">
+            <div class="stat stat--energy"><div class="stat-label"><span>精神电量</span><b id="stat-energy">50</b></div><div class="stat-meter"><i></i></div></div>
+            <div class="stat stat--dignity"><div class="stat-label"><span>人类体面</span><b id="stat-dignity">50</b></div><div class="stat-meter"><i></i></div></div>
+            <div class="stat stat--luck"><div class="stat-label"><span>今日好运</span><b id="stat-luck">50</b></div><div class="stat-meter"><i></i></div></div>
+          </div>
+        </div>
+        <article class="scene-ticket">
+          <div class="scene-index" aria-hidden="true"><span>CASE</span><strong class="scene-number">01</strong></div>
+          <div class="scene-copy">
+            <p id="scene-eyebrow" class="scene-eyebrow">07:30 · 开机事故</p>
+            <h2 id="scene-title">闹钟响了，灵魂还堵在高速上</h2>
+            <p id="scene-body" class="scene-body">你的手精准摸向“再睡一会儿”，而社会规则正在门外疯狂敲门。</p>
+          </div>
+          <div class="scene-barcode" aria-hidden="true"></div>
+        </article>
+        <div class="decision-panel">
+          <div class="section-heading section-heading--compact">
+            <span class="step-no">!</span><div><p>MANUAL OVERRIDE</p><h2>请选择你的应急方案</h2></div>
+          </div>
+          <div id="option-list" class="option-list" aria-live="polite"></div>
+        </div>
+        <div id="feedback" class="feedback" role="status" aria-live="polite" hidden></div>
+      </section>
+
+      <section id="result-screen" class="screen result-screen" aria-labelledby="result-title" hidden>
+        <div class="result-slip">
+          <div class="result-slip__header"><span>节后首日生存鉴定</span><span>已盖章</span></div>
+          <div class="result-hero">
+            <div class="result-stamp" aria-hidden="true">存活</div>
+            <p>鉴定结果</p><h1 id="result-title">表面开机成功</h1>
+            <p id="result-verdict" class="result-verdict">你的人到了，灵魂发来的定位还在服务区。</p>
+          </div>
+          <div class="score-block"><span>综合生存指数</span><strong id="result-score">76</strong><small>/ 100</small></div>
+          <div class="result-stats" aria-label="最终状态">
+            <div><span>精神电量</span><strong id="result-energy">50</strong></div>
+            <div><span>人类体面</span><strong id="result-dignity">50</strong></div>
+            <div><span>今日好运</span><strong id="result-luck">50</strong></div>
+          </div>
+          <div class="result-section"><p class="result-label">今日行为标签</p><div id="result-tags" class="tag-list"></div></div>
+          <div class="result-section result-section--highlight"><p class="result-label">本日重点病历</p><p id="result-highlight">你用一种很新的方式完成了返岗。</p></div>
+          <div class="result-section result-section--share"><p class="result-label">朋友圈发病文案</p><p id="result-share">假期结束了，但我的系统仍在处理中。</p></div>
+          <div class="result-actions">
+            <button id="save-report" class="primary-button" type="button"><span>保存我的生存报告</span><span aria-hidden="true">↓</span></button>
+            <button id="restart-game" class="secondary-button" type="button">同模式再活一次</button>
+            <button id="switch-mode" class="text-button" type="button">换个身份再受一次</button>
+          </div>
+          <div class="result-slip__footer" aria-hidden="true"><span>HRSC · 返岗检修编号 1008</span><span>仅供娱乐 请勿申请工伤</span></div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer"><span>节后人类状态检修中心</span><span>今日营业 · 明天再说</span></footer>
+  </div>
+
+  <div id="report-modal" class="report-modal" role="dialog" aria-modal="true" aria-labelledby="report-modal-title" hidden>
+    <button class="modal-backdrop" type="button" data-close-report aria-label="关闭报告预览"></button>
+    <div class="modal-sheet">
+      <div class="modal-header">
+        <div><p>REPORT GENERATED</p><h2 id="report-modal-title">你的报告已生成</h2></div>
+        <button id="close-report" class="modal-close" type="button" aria-label="关闭">×</button>
+      </div>
+      <div class="report-frame"><img id="report-image" alt="个人节后第一天生存报告" draggable="false"></div>
+      <p class="save-hint">长按图片保存到相册，再去朋友圈公开病情。</p>
+    </div>
+  </div>
+
+  <noscript><div class="noscript-message">本模拟器需要开启 JavaScript 才能进行人类状态检测。</div></noscript>
+  <script>const __gameModules = {};
+__gameModules["game-data.js"] = (() => {
+const MODE_META = Object.freeze({
+  work: { name: "返工模式", shortName: "返工", intro: "工位已通电，你的灵魂还堵在返程高速。" },
+  school: { name: "返校模式", shortName: "返校", intro: "校园已开机，你的脑子仍停留在假期版本。" },
+});
+
+const option = (id, label, feedback, effects, trait, traitValue = 4) => ({
+  id,
+  label,
+  feedback,
+  effects: { energy: 0, dignity: 0, luck: 0, ...effects },
+  traits: { social: 0, slack: 0, grit: 0, chaos: 0, [trait]: traitValue },
+});
+
+const scene = (id, time, eyebrow, title, text, options) => ({ id, time, eyebrow, title, text, body: text, options });
+
+const workScenes = [
+  scene("work-alarm", "07:30", "开机失败 01", "闹钟响了，灵魂拒绝签收", "手机响到第三遍，你和被窝正在进行一场没有律师的离婚谈判。", [
+    option("spring-up", "垂死病中惊坐起，肉身先打卡", "开机很暴力，但确实开了。", { energy: -8, dignity: 5 }, "grit"),
+    option("eight-more", "再睡八分钟，和命运谈判", "获得八分钟续命体验卡，附赠狂奔套餐。", { energy: 7, dignity: -5, luck: -3 }, "slack"),
+    option("remote-spirit", "先睁一只眼，另一只远程办公", "左右脑成功实现混合办公。", { energy: 2, luck: 2 }, "chaos"),
+  ]),
+  scene("work-commute", "08:35", "通勤副本 02", "地铁门前，人类压缩算法启动", "车厢里已没有位置，只有分子间隙。后面的人眼神写着：你还能再薄一点。", [
+    option("squeeze", "深吸一口气，把自己压成附件", "你成功上传进车厢，文件略有损坏。", { energy: -9, dignity: -3, luck: 1 }, "grit"),
+    option("next-train", "等下一班，让全勤奖随风去吧", "钱可以再赚，氧气必须现在呼吸。", { energy: 4, dignity: 4, luck: -5 }, "slack"),
+    option("tourist", "切换游客模式：这也是城市景点", "只要心态够歪，早高峰也能算沉浸展。", { energy: 1, dignity: 1, luck: 4 }, "chaos"),
+  ]),
+  scene("work-greeting", "09:12", "社交加载 03", "同事问：假期玩得怎么样？", "这是一道开放题，但空气里飘着标准答案：《挺好的，你呢》。", [
+    option("album", "掏出精修九宫格，举办个人影展", "你讲了七分钟，同事的微笑逐渐进入省电模式。", { energy: -3, dignity: 2, luck: 2 }, "social"),
+    option("survived", "沉痛回答：活着回来就不错", "一句话让茶水间拥有了纪录片质感。", { energy: 2, dignity: 1, luck: 1 }, "chaos"),
+    option("reverse", "熟练反问：你呢？然后灵魂下线", "社交太极，四两拨走八百字游记。", { energy: 4, dignity: 4 }, "social"),
+  ]),
+  scene("work-inbox", "10:26", "任务洪峰 04", "未读消息 99+，每一条都认识你", "工作群像刚揭盖的高压锅，红点们排队问你假期是否真的结束。", [
+    option("clear-all", "从最早一条开始，考古式逐个回复", "你很负责，CPU 也很想辞职。", { energy: -10, dignity: 5 }, "grit"),
+    option("mark-read", "一键已读，主打眼不见心不跳", "红点消失了，问题只是换成透明皮肤。", { energy: 5, dignity: -4, luck: -3 }, "slack"),
+    option("emoji", "统一回复收到.jpg，众生平等", "效率很高，感情很淡，职场很宽。", { energy: 1, dignity: 1, luck: 2 }, "chaos"),
+  ]),
+  scene("work-lunch", "12:08", "午间回血 05", "午饭吃什么，人类终极议题", "群聊讨论十八分钟，从火锅辩到轻食，目前唯一共识是都饿了。", [
+    option("team-lunch", "加入聚餐，用八卦为灵魂补碳", "饭没少吃，信息差也成功补齐。", { energy: 7, dignity: 2, luck: 4 }, "social"),
+    option("desk-food", "工位速食，边吃边看猫猫视频", "身体摄入热量，灵魂吸收猫量。", { energy: 9, luck: 2 }, "slack"),
+    option("coffee", "咖啡当饭，给血管充值季度会员", "胃发来警告，脑子暂时同意上线。", { energy: 4, dignity: -3, luck: -2 }, "chaos"),
+  ]),
+  scene("work-emergency", "14:47", "突发更新 06", "老板突然出现：这个今天能出吗？", "文件名叫“最终版_v2_真的最终”，你的下午叫“刚刚开始”。", [
+    option("roger", "先说收到，手和脑子再协商", "职业素养上线，精神电量开始闪红。", { energy: -12, dignity: 6, luck: 1 }, "grit", 5),
+    option("clarify", "礼貌追问：今天的几点算今天？", "你没有拒绝，你只是重新定义了时间。", { dignity: 4, luck: 2 }, "social"),
+    option("traffic", "假装网络还堵在返程高速上", "信号满格，演技也满格。", { energy: 5, dignity: -6, luck: -4 }, "slack"),
+  ]),
+  scene("work-meeting", "17:36", "撤退预演 07", "离下班 24 分钟，群里弹出“开个小会”", "会议链接发得很轻，落在你的心上有两百斤。", [
+    option("camera", "准时进会并打开摄像头，正面硬刚", "脸在会议里，魂在窗外排队下班。", { energy: -9, dignity: 6 }, "grit"),
+    option("mute", "静音参会，用嗯嗯构建职场", "你用三个语气词撑起了一场会议。", { dignity: 1, luck: 2 }, "slack"),
+    option("battery", "头像变灰：本人电量与设备同步告急", "这是行为艺术，也是求生本能。", { energy: 3, dignity: -3, luck: -1 }, "chaos", 5),
+  ]),
+  scene("work-exit", "18:32", "最终撤离 08", "下班时间到，你的椅子却有粘性", "大家互相观察，谁先站起来，谁就是办公室的自由女神。", [
+    option("leave", "拎包就走：我为准点下班代言", "门禁滴的一声，是自由的片尾曲。", { energy: 6, dignity: 7, luck: 4 }, "slack"),
+    option("wait", "假装整理桌面，等第一个勇士出现", "从众是一种古老而稳定的生存科技。", { energy: -2, dignity: 2, luck: 1 }, "social"),
+    option("finish", "再改最后一版，和晚霞互道晚安", "任务清空了，你也差点被清空。", { energy: -10, dignity: 6 }, "grit", 5),
+  ]),
+];
+
+const schoolScenes = [
+  scene("school-alarm", "07:10", "开学失败 01", "闹钟响了，宿舍集体装死", "八点有课，七点十分的你正在研究被窝到教室的量子传送。", [
+    option("wash", "弹射起床，三分钟完成人类出厂设置", "速度堪比军训，精致度堪比监控截图。", { energy: -7, dignity: 4, luck: 1 }, "grit"),
+    option("five", "再眯五分钟，把未来交给舍友", "舍友没叫你，舍友也把未来交给了你。", { energy: 6, dignity: -5, luck: -4 }, "slack"),
+    option("half-face", "只洗脸的正面，背面保持假期原装", "局部复学成功，整体仍在加载。", { energy: 2, luck: 2 }, "chaos"),
+  ]),
+  scene("school-breakfast", "07:48", "晨间竞速 02", "食堂队伍蜿蜒成了贪吃蛇", "离上课还有十二分钟，包子窗口离你大约两个学期。", [
+    option("queue", "排！空腹学习是对知识的不尊重", "吃上了，老师点名也快吃上你了。", { energy: 8, dignity: 1, luck: -3 }, "slack"),
+    option("run", "含泪路过，靠年轻硬扛到中午", "胃在叫，求知欲假装没听见。", { energy: -8, dignity: 4, luck: 1 }, "grit"),
+    option("borrow", "向舍友借一口，启动友情众筹", "一口早餐，三分人情，七分塑料袋香气。", { energy: 4, dignity: -1, luck: 4 }, "social"),
+  ]),
+  scene("school-roll-call", "08:03", "点名危机 03", "老师翻开名单，空气突然有了重量", "你卡在教室后门，老师的手指卡在你的名字上。", [
+    option("shout", "门外大喊到，让声音先入学", "人未到，声先至，传统轻功重现校园。", { energy: -2, dignity: -4, luck: 3 }, "chaos"),
+    option("sneak", "贴墙潜行，假装自己是教学设备", "投影仪没有学分，你有，但你们都很安静。", { energy: -1, dignity: 1, luck: 1 }, "slack"),
+    option("front", "走正门：迟到但精神面貌良好", "你输了时间，赢了完整的注目礼。", { energy: -3, dignity: 6 }, "grit"),
+  ]),
+  scene("school-class", "10:20", "知识攻击 04", "老师说：这部分假期前讲过", "全班点头如捣蒜，你的记忆库只检索到火锅和景区。", [
+    option("notes", "疯狂记笔记，先把字请进本子", "理解可以迟到，墨水已经全勤。", { energy: -8, dignity: 5, luck: 1 }, "grit", 5),
+    option("photo", "拍下黑板，知识进入相册即算拥有", "相册学会了，你还需要再同步一下。", { energy: 3, dignity: -2, luck: 1 }, "slack"),
+    option("nod", "战略点头，制造我懂了的视觉效果", "老师获得反馈，你获得颈椎运动。", { dignity: 1, luck: 2 }, "social"),
+  ]),
+  scene("school-lunch", "12:14", "食堂团战 05", "午饭搭子问：吃啥？你脑内一片雪花", "一群人站在食堂门口，像正在选取出生点的游戏角色。", [
+    option("lead", "振臂一呼：就去最远的那家！", "你成为意见领袖，也成为步数冠军。", { energy: -3, dignity: 4, luck: 5 }, "social"),
+    option("whatever", "发动经典技能：我都行，你们定", "你把选择题改成了队友的论述题。", { energy: 3, luck: 1 }, "slack"),
+    option("snacks", "回宿舍吃库存，薯片也是一种菜", "营养结构略抽象，幸福结构非常稳定。", { energy: 6, dignity: -3, luck: 2 }, "chaos", 5),
+  ]),
+  scene("school-assignment", "14:40", "作业突袭 06", "班群弹出：假期作业现在提交", "你盯着名为“新建文档”的文件，它也清白无辜地盯着你。", [
+    option("write", "极限补写，让键盘替大脑冒烟", "截止时间在追你，你反手给它看了尾灯。", { energy: -12, dignity: 5, luck: 1 }, "grit", 5),
+    option("friend", "求助同学：借我参考一下宇宙规律", "知识发生社交传播，请注意独立思考。", { energy: -2, dignity: -2, luck: 4 }, "social", 5),
+    option("broken", "提交损坏文件，给时间一点时间", "文件坏没坏不知道，你的胆子挺完整。", { energy: 4, dignity: -7, luck: -5 }, "chaos", 5),
+  ]),
+  scene("school-afternoon", "16:28", "电量告急 07", "最后一节课，眼皮开始自动更新", "老师的声音温柔稳定，像一款为你定制的白噪音。", [
+    option("stand", "主动站到后排，尊严换清醒", "你站起来了，知识也终于站住一点。", { energy: -2, dignity: 4, luck: 2 }, "grit", 5),
+    option("nap", "精准小睡三分钟，进行脑内重启", "醒来后，黑板已跨越三个章节。", { energy: 6, dignity: -3, luck: -2 }, "slack", 5),
+    option("question", "突然举手提问，把自己吓醒", "全班醒了，老师笑了，你后悔了。", { energy: 2, dignity: 3, luck: 3 }, "social"),
+  ]),
+  scene("school-exit", "18:06", "最终撤离 08", "今天结束了，晚上的你准备交给谁？", "社团、作业、宿舍躺平刷新在同一时段，人生突然变成多选题。", [
+    option("library", "冲去图书馆，趁脑子还有余温", "第一份自律已到账，保质期暂时未知。", { energy: -8, dignity: 7, luck: 2 }, "grit", 5),
+    option("friends", "和朋友散步，把离谱一天盘成包浆", "烦恼被笑声稀释，步数也顺便达标。", { energy: 3, dignity: 3, luck: 6 }, "social", 5),
+    option("bed", "回宿舍躺平，床是今晚唯一导师", "你退出校园副本，进入被窝主线。", { energy: 8, dignity: -1, luck: 2 }, "slack"),
+  ]),
+];
+
+const SCENARIOS = Object.freeze({ work: Object.freeze(workScenes), school: Object.freeze(schoolScenes) });
+const GAME_DATA = Object.freeze({
+  work: Object.freeze({ ...MODE_META.work, scenes: SCENARIOS.work }),
+  school: Object.freeze({ ...MODE_META.school, scenes: SCENARIOS.school }),
+});
+const PUBLIC_STATS = Object.freeze(["energy", "dignity", "luck"]);
+const TRAITS = Object.freeze(["social", "slack", "grit", "chaos"]);
+
+const end = (title, verdict, share) => ({ title, verdict, share });
+const endingsByMode = {
+  work: Object.freeze({
+    critical: end("假期戒断反应重症户", "人回到工位，灵魂还在景区排队。今天没赢，但保留了明天继续演的资格。", "返工第一天，我的生存指数只有 {score}。别问，问就是系统尚未响应。"),
+    legend: end("无痕返工六边形战士", "你把红点、会议和晚高峰都走成新手教程，甚至还有余力保持人类形态。", "返工第一天，我以 {score} 分无痕通关。假期结束了，但我居然没有。"),
+    survivor: end("表面开机成功", "你看起来像在工作，工作也像完成了。至于灵魂，它已申请稍后加入会议。", "返工第一天，我以 {score} 分完成表面开机。外壳正常，内存另说。"),
+    social: end("茶水间情报交换机", "工作可以晚点做，人际网络必须满格。你靠几句“你呢”平稳穿过办公室。", "返工第一天，我靠社交天线拿下 {score} 分，消息比进度先到。"),
+    slack: end("带薪灵魂出走者", "肉身全程在线，灵魂弹性出勤。今天省下的命，明天还能接着用。", "返工第一天，我以 {score} 分低功耗运行。不是摸鱼，是节能减排。"),
+    grit: end("工位永动机体验卡", "你硬把假期模式掰回生产模式。任务清了，电量红了，责任心还在闪光。", "返工第一天，我硬扛出 {score} 分。人可以累，文件必须最终版。"),
+    chaos: end("办公室抽象艺术家", "别人返工靠流程，你靠想象力。每个危机都被处理成值得转发的行为艺术。", "返工第一天，我用抽象拿下 {score} 分。班上了，精神状态没完全上。"),
+    balanced: end("人类模式稳健运行", "该扛时扛，该躺时躺，该社交时精准微笑。你没惊艳系统，也没被系统带走。", "返工第一天，我以 {score} 分稳健存活。没有奇迹，全靠收放自如。"),
+  }),
+  school: Object.freeze({
+    critical: end("假期脑回路滞留生", "身体完成返校，脑子仍在加载假期存档。知识路过了你，并礼貌地点了赞。", "返校第一天，我的生存指数只有 {score}。学到什么不确定，活到了放学。"),
+    legend: end("校园满电特招生", "点名、课堂和作业轮番上阵，你把每关都打出开学典礼级精神面貌。", "返校第一天，我满电通关拿下 {score} 分。知识追上我，我还反超半步。"),
+    survivor: end("教室低功耗生物", "你完成了坐下、点头、下课这套核心流程。知识多少不重要，校园确认你还活着。", "返校第一天，我以 {score} 分低功耗复学。人到了，脑子在路上。"),
+    social: end("校园搭子召唤师", "早餐靠舍友，作业靠交流，快乐靠一群人。你没记住公式，但记住所有新鲜八卦。", "返校第一天，我靠搭子文学拿下 {score} 分。独自上学，组团活着。"),
+    slack: end("宿舍躺平研究员", "你把拍照当笔记、小睡当重启，用最低能耗维持完整学籍。", "返校第一天，我以 {score} 分完成学术节能。不是摆烂，是优化能耗。"),
+    grit: end("知识硬啃型选手", "别人还在加载，你已用笔记和意志力把自己焊在课表上。脑子累，学分安心。", "返校第一天，我硬啃出 {score} 分。假期带走记忆，带不走我的笔。"),
+    chaos: end("校园行为艺术家", "迟到、点名和作业在你手里变成即兴喜剧。知识未知，传说肯定留下了。", "返校第一天，我用抽象拿下 {score} 分。课上了，故事也有了。"),
+    balanced: end("校园续命型选手", "你在认真和躺平之间精准横跳，把普通一天过成有惊无险的复学试运行。", "返校第一天，我以 {score} 分平稳续命。会的不会，活着就对。"),
+  }),
+};
+
+const ENDING_KEYS = ["critical", "legend", "survivor", "social", "slack", "grit", "chaos", "balanced"];
+const endingList = ENDING_KEYS.map((when) => Object.freeze({
+  when,
+  title: Object.freeze({ work: endingsByMode.work[when].title, school: endingsByMode.school[when].title }),
+  verdict: Object.freeze({ work: endingsByMode.work[when].verdict, school: endingsByMode.school[when].verdict }),
+  shareText: Object.freeze({ work: endingsByMode.work[when].share, school: endingsByMode.school[when].share }),
+}));
+
+// Array form serves report/catalog consumers; mode properties keep direct lookup ergonomic.
+const ENDINGS = Object.freeze(Object.assign(endingList, {
+  work: Object.freeze(endingsByMode.work),
+  school: Object.freeze(endingsByMode.school),
+}));
+return {MODE_META,SCENARIOS,GAME_DATA,PUBLIC_STATS,TRAITS,ENDINGS};
+})();
+__gameModules["game-engine.js"] = (() => {
+const { ENDINGS, MODE_META, PUBLIC_STATS, SCENARIOS, TRAITS } = __gameModules["game-data.js"];
+
+const clamp = (value, min = 0, max = 100) => Math.min(max, Math.max(min, value));
+
+function requireMode(mode) {
+  if (!Object.hasOwn(MODE_META, mode)) throw new RangeError(`Unknown game mode: ${mode}`);
+}
+
+/** Create the serialisable state for a new run. */
+function createInitialState(mode) {
+  requireMode(mode);
+  return {
+    mode,
+    sceneIndex: 0,
+    stats: { energy: 60, dignity: 60, luck: 60 },
+    traits: { social: 0, slack: 0, grit: 0, chaos: 0 },
+    choices: [],
+    completed: false,
+  };
+}
+
+function normaliseChoiceArguments(state, first, second) {
+  return second
+    ? { scene: first, choice: second }
+    : { scene: SCENARIOS[state.mode]?.[state.sceneIndex], choice: first };
+}
+
+/**
+ * Return a new state after one choice. Supports applyChoice(state, choice) and
+ * applyChoice(state, scene, choice), which keeps UI code and tests ergonomic.
+ */
+function applyChoice(state, first, second) {
+  if (!state || typeof state !== "object") throw new TypeError("A game state is required");
+  requireMode(state.mode);
+  if (state.completed) throw new Error("This run is already complete");
+
+  const { scene, choice } = normaliseChoiceArguments(state, first, second);
+  if (!scene || !choice) throw new TypeError("A scene and choice are required");
+  const activeScene = SCENARIOS[state.mode][state.sceneIndex];
+  if (scene.id !== activeScene.id || !activeScene.options.some(({ id }) => id === choice.id)) {
+    throw new RangeError("Choice does not belong to the active scene");
+  }
+
+  const stats = Object.fromEntries(
+    PUBLIC_STATS.map((key) => [key, clamp(state.stats[key] + (choice.effects?.[key] ?? 0))]),
+  );
+  const traits = Object.fromEntries(
+    TRAITS.map((key) => [key, state.traits[key] + (choice.traits?.[key] ?? 0)]),
+  );
+  const sceneIndex = state.sceneIndex + 1;
+
+  return {
+    ...state,
+    sceneIndex,
+    stats,
+    traits,
+    choices: [...state.choices, {
+      sceneId: scene.id,
+      sceneTitle: scene.title,
+      choiceId: choice.id,
+      label: choice.label,
+      feedback: choice.feedback,
+      effects: { ...choice.effects },
+    }],
+    completed: sceneIndex >= SCENARIOS[state.mode].length,
+  };
+}
+
+/** Weighted 0–100 score: stamina and dignity matter most, luck still counts. */
+function calculateSurvivalScore(state) {
+  const { energy = 0, dignity = 0, luck = 0 } = state?.stats ?? {};
+  return Math.round(clamp(energy * 0.4 + dignity * 0.4 + luck * 0.2));
+}
+
+/** A trait wins only with a two-point lead; near ties are intentionally balanced. */
+function dominantTrait(state) {
+  const ranked = TRAITS
+    .map((key) => [key, Number(state?.traits?.[key] ?? 0)])
+    .sort((a, b) => b[1] - a[1]);
+  if (ranked[0][1] <= 0 || ranked[0][1] - ranked[1][1] < 2) return "balanced";
+  return ranked[0][0];
+}
+
+/** Resolve result by safety thresholds first, then the player's behaviour. */
+function resolveEnding(state) {
+  requireMode(state.mode);
+  const score = calculateSurvivalScore(state);
+  const { energy, dignity, luck } = state.stats;
+  const trait = dominantTrait(state);
+  let key;
+
+  if (energy <= 15 || dignity <= 15 || score < 28) key = "critical";
+  else if (score >= 82 && energy >= 75 && dignity >= 75 && luck >= 65) key = "legend";
+  else if (score < 48) key = "survivor";
+  else if (trait !== "balanced") key = trait;
+  else key = "balanced";
+
+  const ending = ENDINGS[state.mode][key];
+  return {
+    key,
+    mode: state.mode,
+    score,
+    trait,
+    title: ending.title,
+    verdict: ending.verdict,
+    shareText: ending.share.replaceAll("{score}", String(score)),
+  };
+}
+
+function getCurrentScene(state) {
+  requireMode(state.mode);
+  return SCENARIOS[state.mode][state.sceneIndex] ?? null;
+}
+return {createInitialState,applyChoice,calculateSurvivalScore,dominantTrait,resolveEnding,getCurrentScene};
+})();
+__gameModules["report.js"] = (() => {
+const MODE_LABELS = { work: "返工模式", school: "返校模式" };
+const STAT_LABELS = { energy: "精神电量", dignity: "人类体面", luck: "今日好运" };
+const TRAIT_LABELS = {
+  social: "人情世故在线",
+  slack: "低功耗续航",
+  grit: "硬扛型选手",
+  chaos: "抽象能量超标",
+};
+const FONT_STACK = '"Arial", "Microsoft YaHei", sans-serif';
+
+function scoreFromStats(stats) {
+  const score = stats.energy * 0.4 + stats.dignity * 0.4 + stats.luck * 0.2;
+  return Math.max(0, Math.min(100, Math.round(score)));
+}
+
+function endingCopy(value, mode) {
+  if (typeof value === "string") return value;
+  return value?.[mode] ?? "今日成功存活，建议立即进入省电模式。";
+}
+
+function findExtremeChoice(choices, direction) {
+  let winner = null;
+  for (const choice of choices) {
+    for (const [stat, rawValue] of Object.entries(choice.effects ?? {})) {
+      const value = Number(rawValue) || 0;
+      if (direction === "positive" && value <= 0) continue;
+      if (direction === "negative" && value >= 0) continue;
+      if (!winner || Math.abs(value) > Math.abs(winner.value)) {
+        winner = { choice, stat, value };
+      }
+    }
+  }
+  return winner;
+}
+
+function describeMoment(extreme, fallback) {
+  if (!extreme) return fallback;
+  const sign = extreme.value > 0 ? "+" : "";
+  return extreme.choice.label + " · " + (STAT_LABELS[extreme.stat] ?? extreme.stat) + " " + sign + extreme.value;
+}
+
+function buildReportModel(state, ending) {
+  const rankedTraits = Object.entries(state.traits ?? {}).sort((a, b) => b[1] - a[1]);
+  const positive = findExtremeChoice(state.choices ?? [], "positive");
+  const negative = findExtremeChoice(state.choices ?? [], "negative");
+  const tags = rankedTraits
+    .filter(([, value]) => value > 0)
+    .slice(0, 3)
+    .map(([trait]) => TRAIT_LABELS[trait] ?? trait);
+  if (tags.length === 0) tags.push("谨慎开机", "平稳存活");
+
+  return {
+    mode: state.mode,
+    modeLabel: MODE_LABELS[state.mode] ?? "生存模式",
+    title: endingCopy(ending?.title, state.mode),
+    verdict: endingCopy(ending?.verdict, state.mode),
+    shareText: endingCopy(ending?.shareText, state.mode),
+    score: Number.isFinite(ending?.score) ? ending.score : scoreFromStats(state.stats),
+    stats: { ...state.stats },
+    tags,
+    highlight: describeMoment(positive, "全程保持低调，没有把灵魂落在路上。"),
+    wildest: describeMoment(negative, "今日居然没有明显翻车，疑似系统误判。"),
+  };
+}
+
+function roundedRect(ctx, x, y, width, height, radius) {
+  const r = Math.min(radius, width / 2, height / 2);
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.lineTo(x + width - r, y);
+  ctx.quadraticCurveTo(x + width, y, x + width, y + r);
+  ctx.lineTo(x + width, y + height - r);
+  ctx.quadraticCurveTo(x + width, y + height, x + width - r, y + height);
+  ctx.lineTo(x + r, y + height);
+  ctx.quadraticCurveTo(x, y + height, x, y + height - r);
+  ctx.lineTo(x, y + r);
+  ctx.quadraticCurveTo(x, y, x + r, y);
+  ctx.closePath();
+}
+
+function setFont(ctx, weight, size) {
+  ctx.font = weight + " " + size + "px " + FONT_STACK;
+}
+
+function segmentText(text) {
+  return String(text ?? "").match(/[A-Za-z0-9][A-Za-z0-9._+#%/-]*\s*|\s+|[^A-Za-z0-9\s]/g) ?? [];
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const tokens = segmentText(text);
+  const lines = [];
+  let line = "";
+  for (const token of tokens) {
+    if (token === "\n") {
+      lines.push(line.trimEnd());
+      line = "";
+      continue;
+    }
+    const candidate = line + token;
+    if (line && ctx.measureText(candidate).width > maxWidth) {
+      lines.push(line.trimEnd());
+      line = token.trimStart();
+    } else {
+      line = candidate;
+    }
+  }
+  if (line || lines.length === 0) lines.push(line.trimEnd());
+  return lines;
+}
+
+function drawWrappedText(ctx, text, x, y, maxWidth, lineHeight, maxLines) {
+  const lines = wrapText(ctx, text, maxWidth);
+  const visible = lines.slice(0, maxLines);
+  if (lines.length > maxLines) {
+    let last = visible[maxLines - 1];
+    while (last && ctx.measureText(last + "…").width > maxWidth) last = last.slice(0, -1);
+    visible[maxLines - 1] = last + "…";
+  }
+  visible.forEach((line, index) => ctx.fillText(line, x, y + index * lineHeight));
+  return y + visible.length * lineHeight;
+}
+
+function drawPill(ctx, text, x, y, color) {
+  setFont(ctx, 700, 27);
+  const width = ctx.measureText(text).width + 44;
+  roundedRect(ctx, x, y, width, 52, 26);
+  ctx.fillStyle = color;
+  ctx.fill();
+  ctx.fillStyle = "#071019";
+  ctx.fillText(text, x + 22, y + 36);
+  return width;
+}
+
+function drawStat(ctx, label, value, x, y, color) {
+  ctx.fillStyle = "#9eabba";
+  setFont(ctx, 700, 26);
+  ctx.fillText(label, x, y);
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 800, 30);
+  ctx.textAlign = "right";
+  ctx.fillText(String(value), x + 820, y);
+  ctx.textAlign = "left";
+  roundedRect(ctx, x, y + 22, 820, 22, 11);
+  ctx.fillStyle = "#273849";
+  ctx.fill();
+  roundedRect(ctx, x, y + 22, Math.max(22, 820 * value / 100), 22, 11);
+  ctx.fillStyle = color;
+  ctx.fill();
+}
+
+async function renderReportImage(model) {
+  if (typeof document === "undefined") throw new Error("报告图片只能在浏览器中生成");
+
+  const canvas = document.createElement("canvas");
+  canvas.width = 1080;
+  canvas.height = 1440;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("当前浏览器不支持 Canvas");
+
+  ctx.fillStyle = "#071019";
+  ctx.fillRect(0, 0, 1080, 1440);
+  ctx.strokeStyle = "#273849";
+  ctx.lineWidth = 2;
+  for (let x = 0; x <= 1080; x += 54) {
+    ctx.beginPath();
+    ctx.moveTo(x, 0);
+    ctx.lineTo(x, 1440);
+    ctx.stroke();
+  }
+  for (let y = 0; y <= 1440; y += 54) {
+    ctx.beginPath();
+    ctx.moveTo(0, y);
+    ctx.lineTo(1080, y);
+    ctx.stroke();
+  }
+
+  roundedRect(ctx, 64, 56, 952, 1328, 34);
+  ctx.fillStyle = "#0d1a26";
+  ctx.fill();
+  ctx.strokeStyle = "#eaff3d";
+  ctx.lineWidth = 4;
+  ctx.stroke();
+
+  ctx.fillStyle = "#eaff3d";
+  setFont(ctx, 800, 30);
+  ctx.fillText("POST-HOLIDAY HUMAN SYSTEM", 112, 120);
+  drawPill(ctx, model.modeLabel, 112, 151, "#58f2c2");
+
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 900, 58);
+  drawWrappedText(ctx, model.title, 112, 268, 620, 72, 2);
+
+  ctx.fillStyle = "#9eabba";
+  setFont(ctx, 700, 25);
+  ctx.fillText("生存指数", 788, 228);
+  ctx.fillStyle = "#eaff3d";
+  setFont(ctx, 900, 112);
+  ctx.textAlign = "right";
+  ctx.fillText(String(model.score), 970, 329);
+  ctx.textAlign = "left";
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 800, 28);
+  ctx.fillText("/ 100", 875, 365);
+
+  ctx.strokeStyle = "#273849";
+  ctx.beginPath();
+  ctx.moveTo(112, 405);
+  ctx.lineTo(968, 405);
+  ctx.stroke();
+
+  drawStat(ctx, "精神电量", model.stats.energy, 130, 470, "#eaff3d");
+  drawStat(ctx, "人类体面", model.stats.dignity, 130, 558, "#ff654d");
+  drawStat(ctx, "今日好运", model.stats.luck, 130, 646, "#58f2c2");
+
+  ctx.fillStyle = "#9eabba";
+  setFont(ctx, 700, 24);
+  ctx.fillText("今日行为标签", 112, 750);
+  let pillX = 112;
+  const pillColors = ["#eaff3d", "#58f2c2", "#76a9ff"];
+  model.tags.slice(0, 3).forEach((tag, index) => {
+    pillX += drawPill(ctx, tag, pillX, 775, pillColors[index]) + 16;
+  });
+
+  roundedRect(ctx, 112, 862, 856, 205, 24);
+  ctx.fillStyle = "#142536";
+  ctx.fill();
+  ctx.fillStyle = "#58f2c2";
+  setFont(ctx, 800, 24);
+  ctx.fillText("高光时刻", 146, 908);
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 700, 30);
+  drawWrappedText(ctx, model.highlight, 146, 951, 780, 42, 2);
+  ctx.fillStyle = "#ff654d";
+  setFont(ctx, 800, 24);
+  ctx.fillText("今日翻车", 146, 1020);
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 700, 30);
+  drawWrappedText(ctx, model.wildest, 280, 1020, 640, 42, 1);
+
+  ctx.fillStyle = "#eaff3d";
+  setFont(ctx, 800, 24);
+  ctx.fillText("系统判词", 112, 1125);
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 800, 32);
+  drawWrappedText(ctx, model.verdict, 112, 1172, 856, 45, 2);
+
+  ctx.fillStyle = "#9eabba";
+  setFont(ctx, 600, 26);
+  drawWrappedText(ctx, model.shareText, 112, 1278, 856, 38, 2);
+
+  ctx.fillStyle = "#eaff3d";
+  ctx.fillRect(112, 1350, 20, 20);
+  ctx.fillStyle = "#9eabba";
+  setFont(ctx, 700, 22);
+  ctx.fillText("节后第一天生存模拟器 · 人类已勉强开机", 148, 1368);
+
+  return canvas.toDataURL("image/png");
+}
+
+function revealReportModal(dataUrl) {
+  const modal = document.getElementById("report-modal");
+  const image = document.getElementById("report-image");
+  if (!modal || !image) throw new Error("找不到报告预览窗口");
+  image.src = dataUrl;
+  image.alt = "节后第一天个人生存报告，长按图片即可保存";
+  modal.hidden = false;
+  modal.setAttribute("aria-hidden", "false");
+  if (typeof modal.showModal === "function" && !modal.open) modal.showModal();
+  document.getElementById("close-report")?.focus();
+}
+
+async function saveReportImage(model) {
+  const dataUrl = await renderReportImage(model);
+  const userAgent = typeof navigator === "undefined" ? "" : navigator.userAgent;
+  const isWeChat = /MicroMessenger/i.test(userAgent);
+
+  try {
+    const anchor = document.createElement("a");
+    if (isWeChat || !("download" in anchor)) {
+      revealReportModal(dataUrl);
+      return dataUrl;
+    }
+    anchor.href = dataUrl;
+    anchor.download = "节后第一天生存报告-" + (model.mode === "work" ? "返工" : "返校") + ".png";
+    anchor.style.display = "none";
+    document.body.appendChild(anchor);
+    anchor.click();
+    anchor.remove();
+  } catch {
+    revealReportModal(dataUrl);
+  }
+  return dataUrl;
+}
+
+
+return {buildReportModel,renderReportImage,saveReportImage};
+})();
+__gameModules["app.js"] = (() => {
+const { SCENARIOS } = __gameModules["game-data.js"];
+const {
+  applyChoice,
+  calculateSurvivalScore,
+  createInitialState,
+  resolveEnding,
+} = __gameModules["game-engine.js"];
+const { buildReportModel, saveReportImage } = __gameModules["report.js"];
+
+const screens = {
+  start: document.getElementById("start-screen"),
+  game: document.getElementById("game-screen"),
+  result: document.getElementById("result-screen"),
+};
+
+const elements = {
+  currentTime: document.getElementById("current-time"),
+  progressBar: document.getElementById("progress-bar"),
+  statEnergy: document.getElementById("stat-energy"),
+  statDignity: document.getElementById("stat-dignity"),
+  statLuck: document.getElementById("stat-luck"),
+  sceneEyebrow: document.getElementById("scene-eyebrow"),
+  sceneTitle: document.getElementById("scene-title"),
+  sceneBody: document.getElementById("scene-body"),
+  optionList: document.getElementById("option-list"),
+  feedback: document.getElementById("feedback"),
+  resultTitle: document.getElementById("result-title"),
+  resultVerdict: document.getElementById("result-verdict"),
+  resultScore: document.getElementById("result-score"),
+  resultEnergy: document.getElementById("result-energy"),
+  resultDignity: document.getElementById("result-dignity"),
+  resultLuck: document.getElementById("result-luck"),
+  resultTags: document.getElementById("result-tags"),
+  resultHighlight: document.getElementById("result-highlight"),
+  resultShare: document.getElementById("result-share"),
+  saveReport: document.getElementById("save-report"),
+};
+
+const STAT_LABELS = { energy: "电量", dignity: "体面", luck: "好运" };
+
+let state = null;
+let ending = null;
+let reportModel = null;
+let advanceTimer = null;
+
+function prefersReducedMotion() {
+  return typeof window.matchMedia === "function"
+    && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+}
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, left: 0, behavior: "auto" });
+}
+
+function showScreen(name) {
+  for (const [screenName, screen] of Object.entries(screens)) {
+    if (!screen) continue;
+    screen.hidden = screenName !== name;
+    screen.setAttribute("aria-hidden", String(screenName !== name));
+  }
+  document.body.dataset.screen = name;
+  scrollToTop();
+}
+
+function setValue(element, value) {
+  if (!element) return;
+  element.textContent = String(value);
+  element.setAttribute("aria-valuenow", String(value));
+  element.style.setProperty("--value", value + "%");
+  const container = element.closest(".stat, .result-stats > div");
+  container?.style.setProperty("--value", value + "%");
+  const meter = container?.querySelector(".stat-meter i");
+  if (meter) meter.style.width = value + "%";
+}
+
+function updateStats() {
+  setValue(elements.statEnergy, state.stats.energy);
+  setValue(elements.statDignity, state.stats.dignity);
+  setValue(elements.statLuck, state.stats.luck);
+}
+
+function updateProgress(sceneCount) {
+  const current = Math.min(state.sceneIndex + 1, sceneCount);
+  const percentage = current / sceneCount * 100;
+  if (!elements.progressBar) return;
+  elements.progressBar.style.width = percentage + "%";
+  elements.progressBar.setAttribute("role", "progressbar");
+  elements.progressBar.style.setProperty("--progress", percentage + "%");
+  elements.progressBar.setAttribute("aria-valuemin", "1");
+  elements.progressBar.setAttribute("aria-valuemax", String(sceneCount));
+  elements.progressBar.setAttribute("aria-valuenow", String(current));
+  elements.progressBar.setAttribute("aria-valuetext", "第 " + current + " 关，共 " + sceneCount + " 关");
+}
+
+function createOptionButton(choice, index) {
+  const button = document.createElement("button");
+  const labelNode = document.createElement("span");
+  button.type = "button";
+  button.className = "option-button";
+  button.dataset.choiceId = choice.id;
+  button.setAttribute("aria-label", String(index + 1) + ". " + choice.label);
+  labelNode.textContent = choice.label;
+  button.append(labelNode);
+  button.addEventListener("click", () => chooseOption(choice));
+  return button;
+}
+
+function renderScene() {
+  if (!state) return;
+  const scenes = SCENARIOS[state.mode];
+  const scene = scenes[state.sceneIndex];
+  if (!scene) {
+    showResult();
+    return;
+  }
+
+  elements.currentTime.textContent = scene.time;
+  elements.sceneEyebrow.textContent = scene.eyebrow;
+  elements.sceneTitle.textContent = scene.title;
+  elements.sceneBody.textContent = scene.text;
+  elements.feedback.textContent = "";
+  elements.feedback.hidden = true;
+  elements.optionList.replaceChildren(...scene.options.map(createOptionButton));
+  elements.optionList.removeAttribute("aria-busy");
+  updateStats();
+  updateProgress(scenes.length);
+  document.querySelector(".progress-current")?.replaceChildren(String(state.sceneIndex + 1));
+  document.querySelector(".scene-number")?.replaceChildren(String(state.sceneIndex + 1).padStart(2, "0"));
+  document.querySelectorAll(".punch-track i").forEach((dot, index) => dot.classList.toggle("is-active", index <= state.sceneIndex));
+}
+
+function formatDeltas(effects = {}) {
+  return Object.entries(effects)
+    .filter(([, value]) => Number(value) !== 0)
+    .map(([stat, value]) => (STAT_LABELS[stat] ?? stat) + " " + (value > 0 ? "+" : "") + value)
+    .join(" · ");
+}
+
+function chooseOption(choice) {
+  if (!state || state.locked) return;
+
+  state = { ...state, locked: true };
+  elements.optionList.setAttribute("aria-busy", "true");
+  for (const button of elements.optionList.querySelectorAll("button")) button.disabled = true;
+
+  state = applyChoice(state, choice);
+  updateStats();
+  const deltas = formatDeltas(choice.effects);
+  elements.feedback.textContent = choice.feedback + (deltas ? "｜" + deltas : "");
+  elements.feedback.hidden = false;
+
+  const delay = prefersReducedMotion() ? 80 : 650;
+  clearTimeout(advanceTimer);
+  advanceTimer = window.setTimeout(() => {
+    state = { ...state, locked: false };
+    if (state.completed) showResult();
+    else renderScene();
+  }, delay);
+}
+
+function startGame(mode) {
+  clearTimeout(advanceTimer);
+  state = createInitialState(mode);
+  ending = null;
+  reportModel = null;
+  showScreen("game");
+  renderScene();
+}
+
+function renderResultStat(element, value) {
+  setValue(element, value);
+  element?.style.setProperty("--result-value", value + "%");
+}
+
+function showResult() {
+  if (!state) return;
+  ending = resolveEnding(state);
+  reportModel = buildReportModel(state, ending);
+
+  elements.resultTitle.textContent = reportModel.title;
+  elements.resultVerdict.textContent = reportModel.verdict;
+  elements.resultScore.textContent = String(calculateSurvivalScore(state));
+  renderResultStat(elements.resultEnergy, state.stats.energy);
+  renderResultStat(elements.resultDignity, state.stats.dignity);
+  renderResultStat(elements.resultLuck, state.stats.luck);
+
+  const tagNodes = reportModel.tags.map((tag) => {
+    const node = document.createElement("span");
+    node.className = "result-tag";
+    node.textContent = tag;
+    return node;
+  });
+  elements.resultTags.replaceChildren(...tagNodes);
+  elements.resultHighlight.textContent = "高光：" + reportModel.highlight + "｜翻车：" + reportModel.wildest;
+  elements.resultShare.textContent = reportModel.shareText;
+  elements.saveReport.disabled = false;
+  elements.saveReport.textContent = "保存我的生存报告";
+  showScreen("result");
+}
+
+function restartSameMode() {
+  if (!state) returnHome();
+  else startGame(state.mode);
+}
+
+function returnHome() {
+  clearTimeout(advanceTimer);
+  state = null;
+  ending = null;
+  reportModel = null;
+  showScreen("start");
+}
+
+function closeReportModal() {
+  const modal = document.getElementById("report-modal");
+  if (!modal) return;
+  if (typeof modal.close === "function" && modal.open) modal.close();
+  modal.hidden = true;
+  modal.setAttribute("aria-hidden", "true");
+  elements.saveReport?.focus();
+}
+
+document.getElementById("mode-work")?.addEventListener("click", () => startGame("work"));
+document.getElementById("mode-school")?.addEventListener("click", () => startGame("school"));
+document.getElementById("restart-game")?.addEventListener("click", restartSameMode);
+document.getElementById("switch-mode")?.addEventListener("click", returnHome);
+document.getElementById("close-report")?.addEventListener("click", closeReportModal);
+document.querySelector("[data-close-report]")?.addEventListener("click", closeReportModal);
+
+elements.saveReport?.addEventListener("click", async () => {
+  if (!reportModel || elements.saveReport.disabled) return;
+  elements.saveReport.disabled = true;
+  elements.saveReport.textContent = "正在生成报告…";
+  try {
+    await saveReportImage(reportModel);
+    elements.saveReport.textContent = "报告已生成，再保存一张";
+  } catch (error) {
+    elements.saveReport.textContent = "生成失败，可直接截图保存";
+    console.error("Report generation failed", error);
+  } finally {
+    elements.saveReport.disabled = false;
+  }
+});
+
+document.getElementById("report-modal")?.addEventListener("click", (event) => {
+  if (event.target === event.currentTarget) closeReportModal();
+});
+
+showScreen("start");
+
+
+
+
+
+return {chooseOption,startGame,showResult,restartSameMode,returnHome};
+})();
+</script>
+</body>
+</html>
