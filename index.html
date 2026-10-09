@@ -4,6 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#071019">
+  <meta name="application-version" content="1.1.0-realistic-qr">
   <meta name="description" content="国庆节后第一天生存模拟器：选择上班或上学，完成 8 个剧情节点，领取你的人类返岗体检报告。">
   <meta name="format-detection" content="telephone=no">
   <title>节后第一天生存模拟器</title>
@@ -213,6 +214,7 @@ button:disabled { cursor: wait; opacity: .58; }
 .result-stats strong { margin-top: 2px; font: 950 20px/1.1 ui-monospace, SFMono-Regular, Consolas, monospace; }
 .result-section { margin: 0 23px; padding: 18px 0; border-top: 1px solid rgba(7,16,25,.25); }
 .result-label { margin: 0 0 9px; font: 900 11px/1.2 ui-monospace, SFMono-Regular, Consolas, monospace; letter-spacing: .08em; }
+.result-cause { margin: 0; font-size: 16px; line-height: 1.7; }
 .tag-list { display: flex; flex-wrap: wrap; gap: 7px; min-height: 30px; }
 .result-tag, #result-tags > * { display: inline-flex; align-items: center; min-height: 30px; padding: 4px 9px; color: var(--ink); background: var(--sulfur); border: 1px solid var(--ink); font-size: 14px; font-weight: 800; transform: rotate(-1deg); }
 .result-tag:nth-child(even), #result-tags > *:nth-child(even) { background: var(--mint); transform: rotate(1deg); }
@@ -261,7 +263,8 @@ button:disabled { cursor: wait; opacity: .58; }
 }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-}</style>
+}
+</style>
 </head>
 <body>
   <div class="app-shell">
@@ -361,6 +364,7 @@ button:disabled { cursor: wait; opacity: .58; }
             <div><span>今日好运</span><strong id="result-luck">50</strong></div>
           </div>
           <div class="result-section"><p class="result-label">今日行为标签</p><div id="result-tags" class="tag-list"></div></div>
+          <div class="result-section"><p class="result-label">今日状态说明</p><p id="result-cause" class="result-cause"></p></div>
           <div class="result-section result-section--highlight"><p class="result-label">本日重点病历</p><p id="result-highlight">你用一种很新的方式完成了返岗。</p></div>
           <div class="result-section result-section--share"><p class="result-label">朋友圈发病文案</p><p id="result-share">假期结束了，但我的系统仍在处理中。</p></div>
           <div class="result-actions">
@@ -492,6 +496,64 @@ const schoolScenes = [
   ]),
 ];
 
+// Grounded routes are alternatives to the jokes, not personality penalties.
+const grounded = (id, label, feedback, effects) => ({
+  id, label, feedback,
+  effects: { energy: 0, dignity: 0, luck: 0, ...effects },
+  traits: { social: 0, slack: 0, grit: 0, chaos: 0 },
+  events: { prepared: 1 },
+});
+const groundedRoutes = {
+  work: [
+    ["work-wake-normal", "正常起床，洗漱吃早饭，按时出门", "没有弹射，也没有奇迹。你只是给自己留够了时间。", { energy: 2, dignity: 4 }],
+    ["work-commute-normal", "路况正常，按计划到达公司", "导航没有红成番茄，今天的通勤终于像通勤。", { dignity: 3 }],
+    ["work-greet-normal", "简单聊两句，然后各自开始工作", "寒暄刚好，边界刚好。不是每次见面都要开一场发布会。", { energy: 1, dignity: 2 }],
+    ["work-prioritize", "先确认优先级，把急事一件件处理", "不是每个红点都要立刻拯救。你把混乱排成了队。", { energy: -3, dignity: 4, luck: 1 }],
+    ["work-lunch-normal", "好好吃一顿，饭后休息十分钟", "胃收到正经饭，脑子收到暂停键。续命也可以很普通。", { energy: 8, dignity: 1, luck: 1 }],
+    ["work-deadline-normal", "确认工作量，给出能做到的交付时间", "先把时间说清楚，再把事情做好。专业感无需透支来证明。", { energy: -4, dignity: 4 }],
+    ["work-meeting-normal", "确认议题和结束时间，记下待办", "会议有重点，你的下班也有边界。", { energy: -2, dignity: 3 }],
+    ["work-exit-normal", "确认交接完成，正常下班回家", "今天的任务到这里。准点结束不是逃跑，生活也需要你。", { energy: 6, dignity: 4, luck: 1 }],
+  ],
+  school: [
+    ["school-wake-normal", "正常起床，洗漱拿好课本再出门", "课本、水杯、本人都带上了。平凡开机，也算开机成功。", { energy: 2, dignity: 4 }],
+    ["school-arrive-normal", "提前备好早餐，正常到教室", "包子没有和课表抢时间。你坐下时，还能从容喝一口水。", { energy: 4, dignity: 3 }],
+    ["school-roll-normal", "正常答到；如果晚到，就如实说明原因", "准时就从容答到，晚到就讲清楚。真实，比临场演技省电。", { dignity: 3, luck: 1 }],
+    ["school-study-normal", "认真听课，不懂的地方记下来课后问", "你没有假装全懂，也没有放弃。知识开始一点点重新连接。", { energy: -3, dignity: 4, luck: 1 }],
+    ["school-lunch-normal", "选一家方便的，吃好午饭再休息", "吃到正经饭，保住午休。今天不需要在食堂当战略家。", { energy: 8, dignity: 1, luck: 1 }],
+    ["school-submit-normal", "检查已经完成的作业，按要求提交", "不是所有人都把作业留到最后。提前完成的你，值得被系统看见。", { energy: 2, dignity: 4, luck: 1 }],
+    ["school-afternoon-normal", "喝口水、活动一下，继续正常听课", "困了就做个小调整。恢复状态，不一定要靠吓自己一跳。", { energy: 2, dignity: 3 }],
+    ["school-exit-normal", "列好明天的待办，正常吃饭和休息", "学习有计划，休息也有资格。今天的你可以按时收工。", { energy: 6, dignity: 4, luck: 1 }],
+  ],
+};
+for (const [mode, scenes] of Object.entries({ work: workScenes, school: schoolScenes })) {
+  scenes.forEach((current, index) => current.options.unshift(grounded(...groundedRoutes[mode][index])));
+}
+const rewriteScene = (current, title, text) => Object.assign(current, { title, text, body: text });
+rewriteScene(workScenes[0], "闹钟响了，今天怎么开机？", "假期结束后的第一个早晨。你可以正常起床，也可以继续和被窝谈判——系统尊重每一种人类反应。");
+rewriteScene(workScenes[1], "路上这一关，不全由你说了算", "出门时间能安排，交通状况却不归你管理。今天这段路，你遇到了哪一种情况？");
+rewriteScene(schoolScenes[0], "早八之前，你准备怎么起床？", "八点有课，七点十分的闹钟响了。量子传送还没发明，但正常起床和提前准备都已经可用。");
+rewriteScene(schoolScenes[1], "早餐和进校路，今天顺利吗？", "你正在去教室的路上。正常到达、主动绕路、通勤突发意外，是三种不同的情况。");
+rewriteScene(schoolScenes[2], "老师翻开名单，空气突然有了重量", "名单翻到了你附近。你可能已经坐好，也可能刚赶到门口；怎样回应，仍然可以自己决定。");
+rewriteScene(schoolScenes[5], "班群弹出：假期作业现在提交", "群里开始刷提交提醒。你打开文件夹，完成版和“新建文档”都有人在用。");
+const updateChoice = (scenes, id, updates) => {
+  const choice = scenes.flatMap(current => current.options).find(item => item.id === id);
+  Object.assign(choice, updates);
+};
+updateChoice(workScenes, "eight-more", { label: "明知时间紧，还是再睡八分钟", feedback: "这次延误来自赖床，不是地铁的锅。起床后再认真补救。", events: { procrastination: 1 } });
+updateChoice(schoolScenes, "five", { label: "明知快来不及，还是再眯五分钟", feedback: "闹钟没有失职，你选择了赖床。系统记录原因，不做道德审判。", events: { procrastination: 1 } });
+updateChoice(workScenes, "mark-read", { events: { procrastination: 1 } });
+updateChoice(workScenes, "traffic", { events: { procrastination: 1 }, feedback: "假装故障和真的故障不是一回事。这次系统记为主动拖延。" });
+updateChoice(schoolScenes, "queue", { label: "明知会迟到，仍留下排队买早餐", feedback: "吃饭很重要，这次延误也确实来自你主动留下。两件事可以同时成立。", events: { procrastination: 1 } });
+updateChoice(schoolScenes, "broken", { events: { procrastination: 1 }, feedback: "这次是在主动拖延，不是设备意外。后面仍然可以认真补救。" });
+const accident = (id, label, feedback) => ({
+  id, label, feedback,
+  effects: { energy: -5, dignity: 0, luck: -6 },
+  traits: { social: 0, slack: 0, grit: 0, chaos: 0 },
+  events: { commuteAccident: 1, accountable: 1 },
+});
+updateChoice(workScenes, "next-train", accident("next-train", "地铁突发故障，及时报备并改走公交", "通勤意外已记录。你做了补救，不扣体面，也不算拖延。"));
+schoolScenes[1].options.splice(1, 0, accident("school-bus-failure", "校车临时停运，报备后换路线到校", "这是通勤意外，不是赖床。你已经在努力把不可控变成可补救。"));
+
 const SCENARIOS = Object.freeze({ work: Object.freeze(workScenes), school: Object.freeze(schoolScenes) });
 const GAME_DATA = Object.freeze({
   work: Object.freeze({ ...MODE_META.work, scenes: SCENARIOS.work }),
@@ -503,6 +565,10 @@ const TRAITS = Object.freeze(["social", "slack", "grit", "chaos"]);
 const end = (title, verdict, share) => ({ title, verdict, share });
 const endingsByMode = {
   work: Object.freeze({
+    steady: end("正常开机成功", "你正常起床、认真做事，也给自己留了休息。没有发疯，没有表演，普通但完整地过好一天就很不错。", "返工第一天，我以 {score} 分正常开机。原来平稳过一天，也是一种本事。"),
+    commute: end("通勤意外幸存者", "你遇到了不可控的交通状况，也及时报备和调整路线。今天耗电是真的，但通勤意外不能被记成摸鱼。", "返工第一天，我以 {score} 分穿过通勤意外。路况不归我管，补救由我负责。"),
+    delayed: end("拖延后补票选手", "你曾把起床或待办往后挪了一点，随后继续完成这一天。系统记录了主动拖延，也看见了后面的选择。", "返工第一天，我以 {score} 分完成补票。自己的选择自己认，后半天继续认真活。"),
+    mixed: end("双重延误自救者", "主动拖延和通勤意外都发生了：前者是自己的选择，后者是外部状况。系统分开记账，不把整天甩给交通，也不把意外全怪给你。", "返工第一天，我以 {score} 分完成双重延误自救。选择和意外，分开算账。"),
     critical: end("假期戒断反应重症户", "人回到工位，灵魂还在景区排队。今天没赢，但保留了明天继续演的资格。", "返工第一天，我的生存指数只有 {score}。别问，问就是系统尚未响应。"),
     legend: end("无痕返工六边形战士", "你把红点、会议和晚高峰都走成新手教程，甚至还有余力保持人类形态。", "返工第一天，我以 {score} 分无痕通关。假期结束了，但我居然没有。"),
     survivor: end("表面开机成功", "你看起来像在工作，工作也像完成了。至于灵魂，它已申请稍后加入会议。", "返工第一天，我以 {score} 分完成表面开机。外壳正常，内存另说。"),
@@ -513,6 +579,10 @@ const endingsByMode = {
     balanced: end("人类模式稳健运行", "该扛时扛，该躺时躺，该社交时精准微笑。你没惊艳系统，也没被系统带走。", "返工第一天，我以 {score} 分稳健存活。没有奇迹，全靠收放自如。"),
   }),
   school: Object.freeze({
+    steady: end("正常复学成功", "你正常起床、带齐课本、按时提交作业，也记得吃饭和休息。不需要活成段子，认真过一天也值得一个结局。", "返校第一天，我以 {score} 分正常复学。课本带了，作业交了，我也好好活着。"),
+    commute: end("到校意外幸存者", "路上的突发状况打乱了计划，你选择了报备和换路线。到校过程有波折，不代表你在赖床或逃课。", "返校第一天，我以 {score} 分穿过到校意外。准时的计划，遇到了不准时的校车。"),
+    delayed: end("待办补票型选手", "赖床、主动绕路或故意拖延提交，确实是你的主动选择。但这不等于整天都不认真，后面的每一步仍由你决定。", "返校第一天，我以 {score} 分完成待办补票。前面耽误一点，后面继续好好学。"),
+    mixed: end("复学双重自救者", "你既做过拖延选择，也遇到过通勤意外。系统分别记录：自己的部分自己认，不可控的部分不必内耗。", "返校第一天，我以 {score} 分完成双重自救。赖床和校车故障，是两本账。"),
     critical: end("假期脑回路滞留生", "身体完成返校，脑子仍在加载假期存档。知识路过了你，并礼貌地点了赞。", "返校第一天，我的生存指数只有 {score}。学到什么不确定，活到了放学。"),
     legend: end("校园满电特招生", "点名、课堂和作业轮番上阵，你把每关都打出开学典礼级精神面貌。", "返校第一天，我满电通关拿下 {score} 分。知识追上我，我还反超半步。"),
     survivor: end("教室低功耗生物", "你完成了坐下、点头、下课这套核心流程。知识多少不重要，校园确认你还活着。", "返校第一天，我以 {score} 分低功耗复学。人到了，脑子在路上。"),
@@ -524,7 +594,7 @@ const endingsByMode = {
   }),
 };
 
-const ENDING_KEYS = ["critical", "legend", "survivor", "social", "slack", "grit", "chaos", "balanced"];
+const ENDING_KEYS = ["critical", "legend", "survivor", "social", "slack", "grit", "chaos", "balanced", "steady", "commute", "delayed", "mixed"];
 const endingList = ENDING_KEYS.map((when) => Object.freeze({
   when,
   title: Object.freeze({ work: endingsByMode.work[when].title, school: endingsByMode.school[when].title }),
@@ -537,6 +607,7 @@ const ENDINGS = Object.freeze(Object.assign(endingList, {
   work: Object.freeze(endingsByMode.work),
   school: Object.freeze(endingsByMode.school),
 }));
+
 return {MODE_META,SCENARIOS,GAME_DATA,PUBLIC_STATS,TRAITS,ENDINGS};
 })();
 __gameModules["game-engine.js"] = (() => {
@@ -556,6 +627,7 @@ function createInitialState(mode) {
     sceneIndex: 0,
     stats: { energy: 60, dignity: 60, luck: 60 },
     traits: { social: 0, slack: 0, grit: 0, chaos: 0 },
+    events: { prepared: 0, procrastination: 0, commuteAccident: 0, accountable: 0 },
     choices: [],
     completed: false,
   };
@@ -590,12 +662,15 @@ function applyChoice(state, first, second) {
     TRAITS.map((key) => [key, state.traits[key] + (choice.traits?.[key] ?? 0)]),
   );
   const sceneIndex = state.sceneIndex + 1;
+  const events = { prepared: 0, procrastination: 0, commuteAccident: 0, accountable: 0, ...state.events };
+  for (const [key, value] of Object.entries(choice.events ?? {})) events[key] = (events[key] ?? 0) + value;
 
   return {
     ...state,
     sceneIndex,
     stats,
     traits,
+    events,
     choices: [...state.choices, {
       sceneId: scene.id,
       sceneTitle: scene.title,
@@ -603,6 +678,7 @@ function applyChoice(state, first, second) {
       label: choice.label,
       feedback: choice.feedback,
       effects: { ...choice.effects },
+      events: { ...choice.events },
     }],
     completed: sceneIndex >= SCENARIOS[state.mode].length,
   };
@@ -629,10 +705,15 @@ function resolveEnding(state) {
   const score = calculateSurvivalScore(state);
   const { energy, dignity, luck } = state.stats;
   const trait = dominantTrait(state);
+  const events = state.events ?? {};
   let key;
 
   if (energy <= 15 || dignity <= 15 || score < 28) key = "critical";
+  else if (events.commuteAccident > 0 && events.procrastination > 0) key = "mixed";
+  else if (events.commuteAccident > 0) key = "commute";
+  else if (events.procrastination > 0) key = "delayed";
   else if (score >= 82 && energy >= 75 && dignity >= 75 && luck >= 65) key = "legend";
+  else if (events.prepared >= 4) key = "steady";
   else if (score < 48) key = "survivor";
   else if (trait !== "balanced") key = trait;
   else key = "balanced";
@@ -646,16 +727,36 @@ function resolveEnding(state) {
     title: ending.title,
     verdict: ending.verdict,
     shareText: ending.share.replaceAll("{score}", String(score)),
+    causeSummary: describeCauses(events),
   };
+}
+
+function describeCauses(events = {}) {
+  if (events.commuteAccident > 0 && events.procrastination > 0) return "主动拖延和通勤意外分别记录：选择自己认，意外不背锅。";
+  if (events.commuteAccident > 0) return "本次遇到通勤意外，已主动报备和换路线；不计入拖延。";
+  if (events.procrastination > 0) return "本次有主动拖延选择；后续的认真和补救同样被记录。";
+  if (events.prepared >= 4) return "本次以正常安排为主，没有记录到主动拖延或通勤意外。";
+  return "按你的实际选择记录状态；疲惫、幽默和摸鱼不是同一回事。";
 }
 
 function getCurrentScene(state) {
   requireMode(state.mode);
   return SCENARIOS[state.mode][state.sceneIndex] ?? null;
 }
-return {createInitialState,applyChoice,calculateSurvivalScore,dominantTrait,resolveEnding,getCurrentScene};
+
+return {createInitialState,applyChoice,calculateSurvivalScore,dominantTrait,resolveEnding,describeCauses,getCurrentScene};
+})();
+__gameModules["share-code.js"] = (() => {
+// Generated once; report saving works without network access.
+const HOME_URL = "https://fossilombrophobe.github.io/holiday-survival-simulator/";
+const HOME_QR = Object.freeze(["111111101101010001100110001111111","100000101110001001111010001000001","101110101010110110010100101011101","101110100010111101010101001011101","101110101101001010110010001011101","100000100011101000001001001000001","111111101010101010101010101111111","000000000101110110010001100000000","100111111100001011000000110010111","110001001110111101110011000011100","001001100001010101101001000011111","101101001111101001000010110100110","000101111100111110011001001100010","000111001100101110101111010101000","100111101010010111110000001111000","111010000000010000100000010100101","101010110101100110010010011111000","011011011100010100111010001010101","110100111010111101010001001101101","011000010000111000000001111011110","110001110111111001000000100101001","100000001001100100010111100111000","101001101011000111000111011010011","100111011100011011000001101100101","111011111110010110111000111111000","000000001000111110100101100010110","111111101010000100010111101010110","100000101110011100011001100011100","101110101100001100001011111110001","101110101111100100111000010101011","101110100110111110011010010111111","100000100101000010100001011111111","111111101101101011011001100110000"]);
+
+return {HOME_URL,HOME_QR};
 })();
 __gameModules["report.js"] = (() => {
+const { HOME_URL, HOME_QR } = __gameModules["share-code.js"];
+const { describeCauses } = __gameModules["game-engine.js"];
+
 const MODE_LABELS = { work: "返工模式", school: "返校模式" };
 const STAT_LABELS = { energy: "精神电量", dignity: "人类体面", luck: "今日好运" };
 const TRAIT_LABELS = {
@@ -701,10 +802,15 @@ function buildReportModel(state, ending) {
   const rankedTraits = Object.entries(state.traits ?? {}).sort((a, b) => b[1] - a[1]);
   const positive = findExtremeChoice(state.choices ?? [], "positive");
   const negative = findExtremeChoice(state.choices ?? [], "negative");
-  const tags = rankedTraits
+  const causeTags = [];
+  if (state.events?.commuteAccident > 0) causeTags.push("通勤意外已记录");
+  if (state.events?.procrastination > 0) causeTags.push("主动拖延已记录");
+  if (state.events?.prepared >= 4 && !state.events?.procrastination) causeTags.push("正常节奏在线");
+  const personalityTags = rankedTraits
     .filter(([, value]) => value > 0)
     .slice(0, 3)
     .map(([trait]) => TRAIT_LABELS[trait] ?? trait);
+  const tags = [...causeTags, ...personalityTags].slice(0, 3);
   if (tags.length === 0) tags.push("谨慎开机", "平稳存活");
 
   return {
@@ -715,6 +821,8 @@ function buildReportModel(state, ending) {
     shareText: endingCopy(ending?.shareText, state.mode),
     score: Number.isFinite(ending?.score) ? ending.score : scoreFromStats(state.stats),
     stats: { ...state.stats },
+    causeSummary: ending?.causeSummary ?? describeCauses(state.events),
+    homeUrl: HOME_URL,
     tags,
     highlight: describeMoment(positive, "全程保持低调，没有把灵魂落在路上。"),
     wildest: describeMoment(negative, "今日居然没有明显翻车，疑似系统误判。"),
@@ -806,33 +914,48 @@ function drawStat(ctx, label, value, x, y, color) {
   ctx.fill();
 }
 
+function drawHomeQr(ctx, x, y, boxSize = 300) {
+  // Four clear modules on every side; integer pixels and black/white only.
+  const quiet = 4;
+  const cells = HOME_QR.length + quiet * 2;
+  const scale = Math.floor(boxSize / cells);
+  const edge = scale * cells;
+  const offset = Math.floor((boxSize - edge) / 2);
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(x, y, boxSize, boxSize);
+  ctx.fillStyle = '#000000';
+  HOME_QR.forEach((row, rowIndex) => Array.from(row).forEach((bit, columnIndex) => {
+    if (bit === '1') ctx.fillRect(x + offset + (columnIndex + quiet) * scale, y + offset + (rowIndex + quiet) * scale, scale, scale);
+  }));
+}
+
 async function renderReportImage(model) {
   if (typeof document === "undefined") throw new Error("报告图片只能在浏览器中生成");
 
   const canvas = document.createElement("canvas");
   canvas.width = 1080;
-  canvas.height = 1440;
+  canvas.height = 1760;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("当前浏览器不支持 Canvas");
 
   ctx.fillStyle = "#071019";
-  ctx.fillRect(0, 0, 1080, 1440);
+  ctx.fillRect(0, 0, 1080, 1760);
   ctx.strokeStyle = "#273849";
   ctx.lineWidth = 2;
   for (let x = 0; x <= 1080; x += 54) {
     ctx.beginPath();
     ctx.moveTo(x, 0);
-    ctx.lineTo(x, 1440);
+    ctx.lineTo(x, 1760);
     ctx.stroke();
   }
-  for (let y = 0; y <= 1440; y += 54) {
+  for (let y = 0; y <= 1760; y += 54) {
     ctx.beginPath();
     ctx.moveTo(0, y);
     ctx.lineTo(1080, y);
     ctx.stroke();
   }
 
-  roundedRect(ctx, 64, 56, 952, 1328, 34);
+  roundedRect(ctx, 64, 56, 952, 1648, 34);
   ctx.fillStyle = "#0d1a26";
   ctx.fill();
   ctx.strokeStyle = "#eaff3d";
@@ -890,7 +1013,7 @@ async function renderReportImage(model) {
   drawWrappedText(ctx, model.highlight, 146, 951, 780, 42, 2);
   ctx.fillStyle = "#ff654d";
   setFont(ctx, 800, 24);
-  ctx.fillText("今日翻车", 146, 1020);
+  ctx.fillText("波折时刻", 146, 1020);
   ctx.fillStyle = "#f6f1df";
   setFont(ctx, 700, 30);
   drawWrappedText(ctx, model.wildest, 280, 1020, 640, 42, 1);
@@ -906,11 +1029,18 @@ async function renderReportImage(model) {
   setFont(ctx, 600, 26);
   drawWrappedText(ctx, model.shareText, 112, 1278, 856, 38, 2);
 
+  drawHomeQr(ctx, 112, 1388, 300);
   ctx.fillStyle = "#eaff3d";
-  ctx.fillRect(112, 1350, 20, 20);
+  setFont(ctx, 800, 32);
+  ctx.fillText("扫码，你也来测一测", 450, 1430);
+  ctx.fillStyle = "#f6f1df";
+  setFont(ctx, 700, 26);
+  ctx.fillText("节后第一天生存模拟器", 450, 1474);
   ctx.fillStyle = "#9eabba";
-  setFont(ctx, 700, 22);
-  ctx.fillText("节后第一天生存模拟器 · 人类已勉强开机", 148, 1368);
+  setFont(ctx, 600, 24);
+  drawWrappedText(ctx, model.causeSummary, 450, 1540, 480, 36, 3);
+  setFont(ctx, 600, 22);
+  ctx.fillText("扫码进入试玩首页 · 无需登录", 450, 1668);
 
   return canvas.toDataURL("image/png");
 }
@@ -951,7 +1081,7 @@ async function saveReportImage(model) {
 }
 
 
-return {buildReportModel,renderReportImage,saveReportImage};
+return {buildReportModel,drawHomeQr,renderReportImage,saveReportImage};
 })();
 __gameModules["app.js"] = (() => {
 const { SCENARIOS } = __gameModules["game-data.js"];
@@ -988,6 +1118,7 @@ const elements = {
   resultLuck: document.getElementById("result-luck"),
   resultTags: document.getElementById("result-tags"),
   resultHighlight: document.getElementById("result-highlight"),
+  resultCause: document.getElementById("result-cause"),
   resultShare: document.getElementById("result-share"),
   saveReport: document.getElementById("save-report"),
 };
@@ -1147,7 +1278,8 @@ function showResult() {
     return node;
   });
   elements.resultTags.replaceChildren(...tagNodes);
-  elements.resultHighlight.textContent = "高光：" + reportModel.highlight + "｜翻车：" + reportModel.wildest;
+  elements.resultHighlight.textContent = "高光：" + reportModel.highlight + "｜波折：" + reportModel.wildest;
+  elements.resultCause.textContent = reportModel.causeSummary;
   elements.resultShare.textContent = reportModel.shareText;
   elements.saveReport.disabled = false;
   elements.saveReport.textContent = "保存我的生存报告";
