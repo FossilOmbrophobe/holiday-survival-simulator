@@ -4,7 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#071019">
-  <meta name="application-version" content="1.1.0-realistic-qr">
+  <meta name="application-version" content="1.2.0-single-screen">
   <meta name="description" content="国庆节后第一天生存模拟器：选择上班或上学，完成 8 个剧情节点，领取你的人类返岗体检报告。">
   <meta name="format-detection" content="telephone=no">
   <title>节后第一天生存模拟器</title>
@@ -264,6 +264,79 @@ button:disabled { cursor: wait; opacity: .58; }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { scroll-behavior: auto !important; animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
 }
+
+/* A complete screenshot receipt: result-only chrome and compact summaries. */
+body[data-screen="result"] { padding: 0; min-height: 100dvh; }
+body[data-screen="result"] .app-header,
+body[data-screen="result"] .app-footer { display: none; }
+body[data-screen="result"] .app-shell {
+  display: flex; align-items: center; min-height: 100dvh;
+  padding: calc(var(--safe-top) + 8px) max(12px, var(--safe-right)) calc(var(--safe-bottom) + 8px) max(12px, var(--safe-left));
+}
+body[data-screen="result"] .app-shell > main { width: 100%; min-width: 0; }
+.result-screen {
+  animation: none;
+  --result-space: clamp(4px, .85dvh, 8px);
+  --qr-size: clamp(108px, 16dvh, 128px);
+  display: flex; flex-direction: column; gap: 8px;
+  min-height: 0;
+}
+.result-screen .result-slip {
+  display: flex; flex-direction: column; gap: var(--result-space);
+  flex: 0 0 auto; min-width: 0; padding: 12px;
+  box-shadow: 4px 4px 0 var(--black);
+}
+.result-screen .result-slip::before,
+.result-screen .result-slip::after { top: 190px; width: 14px; height: 14px; }
+.result-screen .result-slip::before { left: -7px; }
+.result-screen .result-slip::after { right: -7px; }
+.result-screen .result-slip__header {
+  margin: -12px -12px 0; padding: 8px 12px;
+  font: 700 14px/1.2 "PingFang SC", "Microsoft YaHei", sans-serif; letter-spacing: 0;
+}
+.result-screen .result-hero { padding: 4px 0 var(--result-space); overflow: visible; }
+.result-heading { display: grid; grid-template-columns: minmax(0, 1fr) 82px; align-items: center; gap: 8px; }
+.result-eyebrow { margin: 0 0 4px; font-size: 12px; line-height: 1.2; color: #58626b; }
+.result-screen .result-hero h1 { max-width: none; font-size: clamp(24px, 6.4vw, 29px); line-height: 1.25; letter-spacing: -.04em; }
+.result-screen .result-stamp { top: 2px; right: 88px; width: 58px; height: 58px; font-size: 14px; border-width: 4px; opacity: .12; }
+.result-screen .score-block { display: flex; flex-direction: column; align-items: flex-end; gap: 3px; padding: 0; }
+.result-screen .score-block span { align-self: auto; font-size: 12px; line-height: 1.2; }
+.result-screen .score-block strong { font-size: 44px; line-height: .92; }
+.result-screen .score-block small { margin: 0; font-size: 12px; line-height: 1; }
+.result-screen .result-verdict { margin: var(--result-space) 0 0; font-size: 16px; font-weight: 500; letter-spacing: 0; line-height: 1.45; }
+.result-screen .result-stats { margin: 0; border-width: 1px; }
+.result-screen .result-stats div { padding: 5px 3px; }
+.result-screen .result-stats span { font-size: 14px; line-height: 1.2; }
+.result-screen .result-stats strong { font-size: 22px; }
+.result-screen .tag-list { gap: 5px; min-height: 24px; }
+.result-screen .result-tag { min-height: 24px; padding: 2px 7px; font-size: 14px; line-height: 1.25; }
+.result-screen .result-cause { padding: 5px 8px; font-size: 14px; line-height: 1.4; background: #e5e9d3; border-left: 3px solid #5e7256; }
+.result-moments { display: grid; gap: 4px; padding: 6px 8px; background: rgba(118,169,255,.2); }
+.result-moments p { display: flex; gap: 8px; align-items: baseline; margin: 0; font-size: 14px; line-height: 1.4; }
+.result-moments strong { flex: 0 0 auto; color: #364e65; }
+.result-moments span { min-width: 0; }
+.result-share-block { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 10px; align-items: center; margin-top: var(--result-space); padding-top: var(--result-space); border-top: 1px dashed #8c958b; }
+.result-share-copy { min-width: 0; }
+.result-share-copy .result-label { margin: 0 0 4px; font-size: 14px; font-family: inherit; letter-spacing: 0; }
+#result-share { margin: 0; font-size: 14px; line-height: 1.45; color: #344250; }
+.screenshot-hint { margin: 6px 0 0; color: #5c6872; font-size: 12px; line-height: 1.3; }
+.result-qr-link { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--ink); text-decoration: none; }
+#result-qr { display: block; width: var(--qr-size); height: var(--qr-size); background: #fff; }
+.result-qr-link span { font-size: 12px; line-height: 1.2; }
+.result-screen .result-actions { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; padding: 0; }
+.result-screen .result-actions button { display: flex; justify-content: center; align-items: center; min-height: 48px; padding: 8px 3px; font-size: 14px; line-height: 1.2; border: 1px solid var(--line); box-shadow: none; text-decoration: none; }
+.result-screen .result-actions .text-button { color: var(--paper); background: transparent; }
+@media (max-height: 700px) {
+  .result-screen { --result-space: 4px; --qr-size: 108px; gap: 6px; }
+  .result-screen .result-slip { padding: 10px; }
+  .result-screen .result-slip__header { margin: -10px -10px 0; padding: 6px 10px; }
+  .result-screen .result-hero h1 { font-size: 24px; }
+  .result-screen .score-block strong { font-size: 38px; }
+  .result-screen .result-verdict { line-height: 1.35; }
+  .result-screen .result-stats div { padding: 4px 3px; }
+  .result-screen .result-stats strong { font-size: 20px; }
+  .result-screen .result-moments { padding: 4px 6px; }
+}
 </style>
 </head>
 <body>
@@ -351,28 +424,32 @@ button:disabled { cursor: wait; opacity: .58; }
 
       <section id="result-screen" class="screen result-screen" aria-labelledby="result-title" hidden>
         <div class="result-slip">
-          <div class="result-slip__header"><span>节后首日生存鉴定</span><span>已盖章</span></div>
+          <div class="result-slip__header"><span>节后第一天 · 生存报告</span><span id="result-mode">返工模式</span></div>
           <div class="result-hero">
             <div class="result-stamp" aria-hidden="true">存活</div>
-            <p>鉴定结果</p><h1 id="result-title">表面开机成功</h1>
+            <div class="result-heading">
+              <div><p class="result-eyebrow">今日鉴定</p><h1 id="result-title">表面开机成功</h1></div>
+              <div class="score-block"><span>生存指数</span><strong id="result-score">76</strong><small>/ 100</small></div>
+            </div>
             <p id="result-verdict" class="result-verdict">你的人到了，灵魂发来的定位还在服务区。</p>
           </div>
-          <div class="score-block"><span>综合生存指数</span><strong id="result-score">76</strong><small>/ 100</small></div>
           <div class="result-stats" aria-label="最终状态">
             <div><span>精神电量</span><strong id="result-energy">50</strong></div>
             <div><span>人类体面</span><strong id="result-dignity">50</strong></div>
             <div><span>今日好运</span><strong id="result-luck">50</strong></div>
           </div>
-          <div class="result-section"><p class="result-label">今日行为标签</p><div id="result-tags" class="tag-list"></div></div>
-          <div class="result-section"><p class="result-label">今日状态说明</p><p id="result-cause" class="result-cause"></p></div>
-          <div class="result-section result-section--highlight"><p class="result-label">本日重点病历</p><p id="result-highlight">你用一种很新的方式完成了返岗。</p></div>
-          <div class="result-section result-section--share"><p class="result-label">朋友圈发病文案</p><p id="result-share">假期结束了，但我的系统仍在处理中。</p></div>
-          <div class="result-actions">
-            <button id="save-report" class="primary-button" type="button"><span>保存我的生存报告</span><span aria-hidden="true">↓</span></button>
-            <button id="restart-game" class="secondary-button" type="button">同模式再活一次</button>
-            <button id="switch-mode" class="text-button" type="button">换个身份再受一次</button>
+          <div id="result-tags" class="tag-list" aria-label="今日行为标签"></div>
+          <p id="result-cause" class="result-cause"></p>
+          <div id="result-highlight" class="result-moments" aria-label="本日高光与波折"></div>
+          <div class="result-share-block">
+            <div class="result-share-copy"><p class="result-label">我的节后状态</p><p id="result-share">假期结束了，但我的系统仍在处理中。</p><p class="screenshot-hint">直接截图分享 · 仅供娱乐</p></div>
+            <a id="result-qr-link" class="result-qr-link" href="https://fossilombrophobe.github.io/holiday-survival-simulator/" aria-label="打开试玩首页"><canvas id="result-qr" width="246" height="246" role="img" aria-label="扫码进入节后第一天生存模拟器"></canvas><span>扫码，你也来试试</span></a>
           </div>
-          <div class="result-slip__footer" aria-hidden="true"><span>HRSC · 返岗检修编号 1008</span><span>仅供娱乐 请勿申请工伤</span></div>
+        </div>
+        <div class="result-actions">
+          <button id="save-report" class="primary-button" type="button">保存报告</button>
+          <button id="restart-game" class="secondary-button" type="button">再活一次</button>
+          <button id="switch-mode" class="text-button" type="button">换个身份</button>
         </div>
       </section>
     </main>
@@ -767,6 +844,69 @@ const TRAIT_LABELS = {
 };
 const FONT_STACK = '"Arial", "Microsoft YaHei", sans-serif';
 
+const SCREEN_VERDICTS = {
+  critical: '电量见底，但你还是熬到了今天的终点。',
+  legend: '状态、安排和运气都在线，今天你是开机优等生。',
+  survivor: '外壳成功上线，灵魂还在后台慢慢恢复。',
+  social: '靠交流和搭子补给，把一天过得有来有往。',
+  slack: '你选择低消耗过关，给明天留了一点电量。',
+  grit: '任务没少做，责任心在线，电量需要补给。',
+  chaos: '把压力过成即兴喜剧，今天的抽象能量满格。',
+  balanced: '该认真时认真，该休息时休息，平稳存活。',
+  steady: '正常安排、认真做事，也记得照顾自己。',
+  commute: '遇到交通意外后积极补救，不把意外算成拖延。',
+  delayed: '主动拖延有记录，后面的认真和补救也算数。',
+  mixed: '拖延和交通意外分开记账，自己的部分自己认。',
+};
+const SCREEN_TAGS = {
+  '通勤意外已记录': '通勤意外', '主动拖延已记录': '主动拖延',
+  '正常节奏在线': '正常开机', '人情世故在线': '社交在线',
+  '低功耗续航': '省电续航', '硬扛型选手': '认真硬扛', '抽象能量超标': '抽象在线',
+};
+const SHORT_CHOICES = {
+  'spring-up': '弹射起床', 'eight-more': '多睡八分钟', 'remote-spirit': '半梦半醒出门',
+  squeeze: '挤进地铁', 'next-train': '故障后报备换线', tourist: '早高峰当展览',
+  album: '分享假期照片', survived: '坦诚聊假期', reverse: '礼貌反问',
+  'clear-all': '逐条处理消息', 'mark-read': '先标已读', emoji: '统一回复收到',
+  'team-lunch': '同事聚餐', 'desk-food': '工位吃饭看猫', coffee: '咖啡代替午饭',
+  roger: '先接下任务', clarify: '确认截止时间', traffic: '假装网络故障',
+  camera: '开摄像头参会', mute: '静音参会', battery: '电量告急求撤',
+  leave: '准点离开', wait: '等同事先走', finish: '继续修改文件',
+  wash: '快速起床洗漱', five: '多睡五分钟', 'half-face': '局部洗脸',
+  queue: '留下排队吃早饭', run: '空腹赶课', borrow: '舍友早餐众筹',
+  shout: '门外答到', sneak: '悄悄进教室', front: '正门入场',
+  notes: '认真记笔记', photo: '拍照记录黑板', nod: '课堂战略点头',
+  lead: '带队找午饭', whatever: '让饭搭子决定', snacks: '宿舍库存午饭',
+  write: '临时补写作业', friend: '请教同学', broken: '拖延提交文件',
+  stand: '站后排提神', nap: '课上睡三分钟', question: '举手提问',
+  library: '晚间图书馆', friends: '朋友散步复盘', bed: '宿舍休息',
+  'work-wake-normal': '按时起床出门', 'work-commute-normal': '按计划到达',
+  'work-greet-normal': '简单寒暄', 'work-prioritize': '按优先级处理',
+  'work-lunch-normal': '吃饭并小憩', 'work-deadline-normal': '确认交付时间',
+  'work-meeting-normal': '明确议题参会', 'work-exit-normal': '交接后下班',
+  'school-wake-normal': '按时起床备课本', 'school-arrive-normal': '备好早餐到校',
+  'school-roll-normal': '如实答到说明', 'school-study-normal': '听课并记下问题',
+  'school-lunch-normal': '午饭和休息', 'school-submit-normal': '检查后交作业',
+  'school-afternoon-normal': '喝水活动提神', 'school-exit-normal': '规划后休息',
+  'school-bus-failure': '校车停运后换线',
+};
+
+function shortMoment(extreme, fallback) {
+  if (!extreme) return fallback;
+  const label = SHORT_CHOICES[extreme.choice.choiceId] ?? extreme.choice.label.split(/[，：；]/)[0];
+  const stat = { energy: '电量', dignity: '体面', luck: '好运' }[extreme.stat];
+  return `${label} · ${stat} ${extreme.value > 0 ? '+' : ''}${extreme.value}`;
+}
+
+function shortCause(events = {}) {
+  const delay = events.procrastination ?? 0, accident = events.commuteAccident ?? 0;
+  if (delay && accident) return `主动拖延 ×${delay} · 通勤意外 ×${accident}；分开记账`;
+  if (accident) return `通勤意外 ×${accident} · 已报备并换线，不算拖延`;
+  if (delay) return `主动拖延 ×${delay} · 后续认真与补救也被记录`;
+  if (events.prepared >= 4) return `正常安排 ×${events.prepared} · 未记录拖延或通勤意外`;
+  return '按实际选择记录状态，结果仅供娱乐';
+}
+
 function scoreFromStats(stats) {
   const score = stats.energy * 0.4 + stats.dignity * 0.4 + stats.luck * 0.2;
   return Math.max(0, Math.min(100, Math.round(score)));
@@ -823,6 +963,13 @@ function buildReportModel(state, ending) {
     stats: { ...state.stats },
     causeSummary: ending?.causeSummary ?? describeCauses(state.events),
     homeUrl: HOME_URL,
+    screen: {
+      verdict: SCREEN_VERDICTS[ending?.key] ?? endingCopy(ending?.verdict, state.mode),
+      cause: shortCause(state.events),
+      tags: tags.map(tag => SCREEN_TAGS[tag] ?? tag),
+      highlight: shortMoment(positive, '平稳走完今天'),
+      wildest: shortMoment(negative, '没有明显波折'),
+    },
     tags,
     highlight: describeMoment(positive, "全程保持低调，没有把灵魂落在路上。"),
     wildest: describeMoment(negative, "今日居然没有明显翻车，疑似系统误判。"),
@@ -1091,7 +1238,7 @@ const {
   createInitialState,
   resolveEnding,
 } = __gameModules["game-engine.js"];
-const { buildReportModel, saveReportImage } = __gameModules["report.js"];
+const { buildReportModel, drawHomeQr, saveReportImage } = __gameModules["report.js"];
 
 const screens = {
   start: document.getElementById("start-screen"),
@@ -1263,26 +1410,39 @@ function showResult() {
   if (!state) return;
   ending = resolveEnding(state);
   reportModel = buildReportModel(state, ending);
+  renderResultModel(reportModel);
+}
 
-  elements.resultTitle.textContent = reportModel.title;
-  elements.resultVerdict.textContent = reportModel.verdict;
-  elements.resultScore.textContent = String(calculateSurvivalScore(state));
-  renderResultStat(elements.resultEnergy, state.stats.energy);
-  renderResultStat(elements.resultDignity, state.stats.dignity);
-  renderResultStat(elements.resultLuck, state.stats.luck);
+function renderResultModel(model) {
+  reportModel = model;
+  document.getElementById('result-mode').textContent = model.modeLabel;
+  elements.resultTitle.textContent = model.title;
+  elements.resultVerdict.textContent = model.screen.verdict;
+  elements.resultScore.textContent = String(model.score);
+  renderResultStat(elements.resultEnergy, model.stats.energy);
+  renderResultStat(elements.resultDignity, model.stats.dignity);
+  renderResultStat(elements.resultLuck, model.stats.luck);
 
-  const tagNodes = reportModel.tags.map((tag) => {
+  const tagNodes = model.screen.tags.map((tag) => {
     const node = document.createElement("span");
     node.className = "result-tag";
     node.textContent = tag;
     return node;
   });
   elements.resultTags.replaceChildren(...tagNodes);
-  elements.resultHighlight.textContent = "高光：" + reportModel.highlight + "｜波折：" + reportModel.wildest;
-  elements.resultCause.textContent = reportModel.causeSummary;
-  elements.resultShare.textContent = reportModel.shareText;
+  elements.resultHighlight.replaceChildren(...[['高光', model.screen.highlight], ['波折', model.screen.wildest]].map(([label, text]) => {
+    const row = document.createElement('p');
+    const key = document.createElement('strong'); key.textContent = label;
+    const copy = document.createElement('span'); copy.textContent = text;
+    row.append(key, copy); return row;
+  }));
+  elements.resultCause.textContent = model.screen.cause;
+  elements.resultShare.textContent = model.shareText;
+  const qr = document.getElementById('result-qr');
+  drawHomeQr(qr.getContext('2d'), 0, 0, qr.width);
+  document.getElementById('result-qr-link').href = model.homeUrl;
   elements.saveReport.disabled = false;
-  elements.saveReport.textContent = "保存我的生存报告";
+  elements.saveReport.textContent = "保存报告";
   showScreen("result");
 }
 
@@ -1318,12 +1478,12 @@ document.querySelector("[data-close-report]")?.addEventListener("click", closeRe
 elements.saveReport?.addEventListener("click", async () => {
   if (!reportModel || elements.saveReport.disabled) return;
   elements.saveReport.disabled = true;
-  elements.saveReport.textContent = "正在生成报告…";
+  elements.saveReport.textContent = "生成中…";
   try {
     await saveReportImage(reportModel);
-    elements.saveReport.textContent = "报告已生成，再保存一张";
+    elements.saveReport.textContent = "再次保存";
   } catch (error) {
-    elements.saveReport.textContent = "生成失败，可直接截图保存";
+    elements.saveReport.textContent = "改用截图";
     console.error("Report generation failed", error);
   } finally {
     elements.saveReport.disabled = false;
@@ -1340,7 +1500,7 @@ showScreen("start");
 
 
 
-return {chooseOption,startGame,showResult,restartSameMode,returnHome};
+return {chooseOption,startGame,showResult,renderResultModel,restartSameMode,returnHome};
 })();
 </script>
 </body>
